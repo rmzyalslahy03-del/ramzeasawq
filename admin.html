@@ -335,7 +335,38 @@
     </button>
 
     <script>
-        // ================== البيانات الافتراضية (نفس البيانات الأصلية + حقول جديدة) ==================
+        // ================== إعداد Deploy Hook (تم دمج الرابط المقدم) ==================
+        let deployTimeout = null;
+        let deployInProgress = false;
+        
+        async function triggerDeploy() {
+            // الرابط المقدم من المستخدم - يعمل بشكل صحيح
+            const DEPLOY_HOOK_URL = 'https://api.vercel.com/v1/integrations/deploy/prj_kI11u9nRRbkmcwMvwARbJ6L9dqJf/wJi8HKhu1G';
+            
+            if (deployInProgress) return;
+            deployInProgress = true;
+            try {
+                const response = await fetch(DEPLOY_HOOK_URL, { method: 'POST' });
+                if (response.ok) {
+                    console.log('✅ تم إرسال طلب النشر بنجاح.');
+                    const toast = document.createElement('div');
+                    toast.className = 'toast-message';
+                    toast.textContent = '✅ تم إرسال طلب النشر، سيتم تحديث الموقع خلال دقائق.';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 4000);
+                } else {
+                    console.error('❌ فشل إرسال طلب النشر:', response.status);
+                    showToast('❌ فشل في نشر التحديثات، حاول مرة أخرى.');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في إرسال طلب النشر:', error);
+                showToast('❌ خطأ في الاتصال بالخادم.');
+            } finally {
+                deployInProgress = false;
+            }
+        }
+        
+        // ================== البيانات الافتراضية ==================
         const defaultData = {
             header: {
                 title: "مجمع أسواق ريادة المستهلك",
@@ -475,7 +506,7 @@
                     if (store.allowUpload === undefined) store.allowUpload = false;
                     if (!store.productDisplayMode) store.productDisplayMode = "grid";
                     if (!store.productDisplayCount) store.productDisplayCount = 10;
-                    if (!store.numStrips) store.numStrips = 10;  // خاصية جديدة
+                    if (!store.numStrips) store.numStrips = 10;
                 });
             }
             if (!data.carousel) data.carousel = [];
@@ -535,6 +566,12 @@
             localStorage.setItem('marketsDB', JSON.stringify(appData));
             updateAutoSaveBadge();
             if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+            
+            // ==== إرسال طلب النشر تلقائيًا بعد الحفظ (مع debounce) ====
+            if (deployTimeout) clearTimeout(deployTimeout);
+            deployTimeout = setTimeout(() => {
+                triggerDeploy();
+            }, 2000); // تأخير 2 ثانية بعد آخر حفظ
         }
 
         function updateAutoSaveBadge() {
@@ -792,7 +829,7 @@
             document.getElementById('storeHidden').checked = store.hidden;
             document.getElementById('storeProductDisplayMode').value = store.productDisplayMode || 'grid';
             document.getElementById('storeProductDisplayCount').value = store.productDisplayCount || 10;
-            document.getElementById('storeNumStrips').value = store.numStrips || 10;  // new field
+            document.getElementById('storeNumStrips').value = store.numStrips || 10;
             document.getElementById('addStoreBtn').style.display = 'none';
             document.getElementById('updateStoreBtn').style.display = 'block';
         };
@@ -1008,7 +1045,7 @@
                 allowUpload: false,
                 productDisplayMode: document.getElementById('storeProductDisplayMode').value,
                 productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value),
-                numStrips: parseInt(document.getElementById('storeNumStrips').value)   // new property
+                numStrips: parseInt(document.getElementById('storeNumStrips').value)
             };
             if (!appData.stores[category]) appData.stores[category] = [];
             appData.stores[category].push(newStore);
@@ -1034,7 +1071,7 @@
             store.hidden = document.getElementById('storeHidden').checked;
             store.productDisplayMode = document.getElementById('storeProductDisplayMode').value;
             store.productDisplayCount = parseInt(document.getElementById('storeProductDisplayCount').value);
-            store.numStrips = parseInt(document.getElementById('storeNumStrips').value);  // new
+            store.numStrips = parseInt(document.getElementById('storeNumStrips').value);
             saveToDB();
             refreshAllLists();
             document.getElementById('storeForm').reset();
