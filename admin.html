@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - مجمع أسواق ريادة المستهلك</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src * data:; font-src *; connect-src *;">
+    <title>لوحة التحكم - أسواق ريادة المستهلك</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -39,9 +41,16 @@
         .preview-btn { position: fixed; bottom: 20px; right: 20px; background: #3b82f6; color: white; border: none; padding: 12px 25px; border-radius: 40px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; transition: 0.2s; }
         .preview-btn:hover { background: #2563eb; transform: scale(1.05); }
         .hidden-store { opacity: 0.6; background: #4b5563; }
-        .import-export { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
-        .import-export button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .import-export button:hover { filter: brightness(1.1); transform: scale(1.02); }
+        .cloud-config-section { grid-column: 1 / -1; }
+        .cloud-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .cloud-actions button { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 40px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .cloud-actions button:hover { transform: scale(1.02); filter: brightness(1.1); }
+        .cloud-status { margin-top: 10px; padding: 8px; border-radius: 20px; background: #1e293b; text-align: center; transition: 0.2s; }
+        .db-actions { display: flex; gap: 15px; margin-top: 10px; justify-content: center; }
+        .db-actions button { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; transition: 0.2s; flex: 1; }
+        .db-actions button.export { background: #10b981; }
+        .db-actions button.import { background: #f59e0b; }
+        .db-actions button:hover { transform: scale(1.02); filter: brightness(1.1); }
         #importFile { display: none; }
         @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
     </style>
@@ -70,23 +79,15 @@
                 <button id="resetVisitorBtn" style="background:#f59e0b; padding:10px; border:none; border-radius:40px; font-weight:bold; width:100%; margin-top:10px;">إعادة تعيين العداد</button>
             </div>
 
-            <!-- استيراد/تصدير -->
+            <!-- استيراد وتصدير قاعدة البيانات -->
             <div class="admin-card">
-                <h2>استيراد / تصدير البيانات</h2>
-                <div class="import-export">
-                    <button id="exportJsonBtn"><i class="fas fa-download"></i> تصدير JSON</button>
-                    <button id="importJsonBtn"><i class="fas fa-upload"></i> استيراد JSON</button>
-                    <input type="file" id="importFile" accept=".json">
+                <h2>قاعدة البيانات</h2>
+                <div class="db-actions">
+                    <button id="exportDbBtn" class="export"><i class="fas fa-download"></i> تصدير قاعدة البيانات</button>
+                    <button id="importDbBtn" class="import"><i class="fas fa-upload"></i> استيراد قاعدة البيانات</button>
                 </div>
-            </div>
-
-            <!-- نشر التحديثات -->
-            <div class="admin-card">
-                <h2>نشر التحديثات</h2>
-                <button id="publishBtn" style="background:#10b981; color:white; border:none; padding:15px; border-radius:40px; font-weight:700; cursor:pointer; width:100%;">
-                    <i class="fas fa-globe"></i> نشر التحديثات إلى جميع الزوار
-                </button>
-                <p style="margin-top:10px; color:#94a3b8;">عند الضغط، سيتم حفظ البيانات وإخطار جميع الزوار بالتحديث.</p>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+                <p style="margin-top:10px; color:#94a3b8;">تصدير البيانات الحالية كملف JSON أو استيراد ملف JSON لاستعادة البيانات.</p>
             </div>
 
             <!-- الإعدادات العامة -->
@@ -247,10 +248,8 @@
                         <option value="grid">شبكي</option>
                         <option value="list">قائمة</option>
                     </select>
-                    <label>عدد المنتجات في الشريط الواحد</label>
+                    <label>عدد المنتجات</label>
                     <input type="number" id="storeProductDisplayCount" value="10" min="1">
-                    <label>عدد الأشرطة الأفقية في صفحة المتجر</label>
-                    <input type="number" id="storeNumStrips" value="10" min="1">
                     <button id="addStoreBtn">➕ إضافة</button>
                     <button id="updateStoreBtn" style="display:none;">تحديث</button>
                 </div>
@@ -327,6 +326,50 @@
                 <h2>رسائل الاتصال</h2>
                 <div class="admin-list" id="messagesList"></div>
             </div>
+
+            <!-- قسم الخدمات السحابية -->
+            <div class="admin-card cloud-config-section">
+                <h2>ربط الخدمات السحابية</h2>
+                <div class="admin-form">
+                    <label>اختر الخدمة</label>
+                    <select id="cloudServiceSelect">
+                        <option value="">-- لا تستخدم خدمة سحابية --</option>
+                        <optgroup label="قواعد البيانات السحابية">
+                            <option value="firebase">Firebase Realtime Database</option>
+                            <option value="supabase">Supabase</option>
+                            <option value="aws_dynamodb">AWS DynamoDB</option>
+                            <option value="firestore">Google Cloud Firestore</option>
+                            <option value="mongodb_atlas">MongoDB Atlas</option>
+                            <option value="back4app">Back4App</option>
+                            <option value="redis_external">Redis (خارجي)</option>
+                        </optgroup>
+                        <optgroup label="تخزين JSON عبر منصات الاستضافة">
+                            <option value="vercel_json">Vercel (JSON Store)</option>
+                            <option value="netlify_json">Netlify (JSON Store)</option>
+                        </optgroup>
+                        <optgroup label="تخزين الكائنات (Object Storage)">
+                            <option value="digitalocean_spaces">DigitalOcean Spaces</option>
+                        </optgroup>
+                        <optgroup label="واجهات برمجية مخصصة">
+                            <option value="custom_rest">واجهة REST مخصصة</option>
+                        </optgroup>
+                        <optgroup label="إعدادات Vercel (متغيرات البيئة)">
+                            <option value="vercel_env">Vercel Environment Variables (Redis, Admin Secret)</option>
+                        </optgroup>
+                    </select>
+                    <div id="cloudSettingsForm"></div>
+                    <label style="margin-top:10px;">
+                        <input type="checkbox" id="autoSyncCheckbox"> تفعيل المزامنة التلقائية (بعد كل حفظ)
+                    </label>
+                    <div class="cloud-actions">
+                        <button id="saveCloudConfigBtn" style="background:#fbbf24; color:#0f172a;">حفظ الإعدادات السحابية</button>
+                        <button id="exportDataBtn" style="background:#10b981;">تصدير البيانات إلى الخدمات</button>
+                        <button id="manualSyncBtn" style="background:#3b82f6;">مزامنة يدوية</button>
+                        <button id="testConnectionBtn" style="background:#f59e0b;">اختبار الاتصال</button>
+                    </div>
+                    <div id="cloudStatus" class="cloud-status"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -335,185 +378,9 @@
     </button>
 
     <script>
-        // ================== إعداد Deploy Hook (تم دمج الرابط المقدم) ==================
-        let deployTimeout = null;
-        let deployInProgress = false;
-        
-        async function triggerDeploy() {
-            // الرابط المقدم من المستخدم - يعمل بشكل صحيح
-            const DEPLOY_HOOK_URL = 'https://api.vercel.com/v1/integrations/deploy/prj_kI11u9nRRbkmcwMvwARbJ6L9dqJf/wJi8HKhu1G';
-            
-            if (deployInProgress) return;
-            deployInProgress = true;
-            try {
-                const response = await fetch(DEPLOY_HOOK_URL, { method: 'POST' });
-                if (response.ok) {
-                    console.log('✅ تم إرسال طلب النشر بنجاح.');
-                    const toast = document.createElement('div');
-                    toast.className = 'toast-message';
-                    toast.textContent = '✅ تم إرسال طلب النشر، سيتم تحديث الموقع خلال دقائق.';
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 4000);
-                } else {
-                    console.error('❌ فشل إرسال طلب النشر:', response.status);
-                    showToast('❌ فشل في نشر التحديثات، حاول مرة أخرى.');
-                }
-            } catch (error) {
-                console.error('❌ خطأ في إرسال طلب النشر:', error);
-                showToast('❌ خطأ في الاتصال بالخادم.');
-            } finally {
-                deployInProgress = false;
-            }
-        }
-        
-        // ================== البيانات الافتراضية ==================
-        const defaultData = {
-            header: {
-                title: "مجمع أسواق ريادة المستهلك",
-                subtitle: "أفضل المتاجر والمنتجات بأفضل الأسعار",
-                images: [
-                    "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=600&fit=crop",
-                    "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&h=600&fit=crop",
-                    "https://images.unsplash.com/photo-1555529669-e69e7aa56ba9?w=1600&h=600&fit=crop",
-                    "https://images.unsplash.com/photo-1441984904996-4e9c9484f3b6?w=1600&h=600&fit=crop",
-                    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=600&fit=crop"
-                ]
-            },
-            ticker: [
-                "🔥 عروض حصرية تصل إلى 50% خصم",
-                "💎 أشهر الماركات العالمية",
-                "🚚 توصيل مجاني للطلبات فوق 200 ريال",
-                "🎁 هدايا مجانية مع كل طلب",
-                "💰 خصم خاص للعملاء الجدد 20%",
-                "⭐ تقييمات عملاء ممتازة"
-            ],
-            carousel: [],
-            design: {
-                categoryBg: "linear-gradient(145deg, #f9eef7, #f3d9e8)",
-                categoryText: "#9b4d96",
-                categoryFontSize: "2rem",
-                storeBg: "#ffffff",
-                storeText: "#1e293b",
-                storeFontSize: "1.3rem",
-                productBg: "#ffffff",
-                productText: "#1e293b",
-                productFontSize: "0.85rem",
-                adBg: "linear-gradient(90deg, #fbbf24, #f59e0b)",
-                adText: "#0f172a",
-                adFontSize: "1.1rem",
-                generalFontSize: "1rem"
-            },
-            categories: [
-                { id: "cat1", name: "العطور والبخور", icon: "fas fa-spray-can-sparkles", slug: "perfumes", color: "#9b4d96", featuredImage: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 1, adText: "", adEnabled: false },
-                { id: "cat2", name: "الورد والهدايا", icon: "fas fa-gift", slug: "gifts", color: "#d97706", featuredImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 2, adText: "", adEnabled: false },
-                { id: "cat3", name: "الإكسسوارات", icon: "fas fa-ring", slug: "accessories", color: "#4f6f8f", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false },
-                { id: "cat4", name: "الأزياء", icon: "fas fa-tshirt", slug: "fashion", color: "#2563eb", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 4, adText: "", adEnabled: false },
-                { id: "cat5", name: "الإلكترونيات", icon: "fas fa-laptop", slug: "electronics", color: "#0e7c7c", featuredImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false }
-            ],
-            stores: {
-                "العطور والبخور": [
-                    { id: "store-cat1-0", name: "ديوان العطور", category: "العطور والبخور", logo: "https://picsum.photos/seed/cat10/100/100", externalUrl: "#", hidden: false, description: "وصف المتجر", phone: "+966 123 456 789", address: "العنوان هنا", ownerCode: "", allowUpload: false, productDisplayMode: "grid", productDisplayCount: 10, numStrips: 10 }
-                ],
-                "الورد والهدايا": [
-                    { id: "store-cat2-0", name: "زهرة الحب", category: "الورد والهدايا", logo: "https://picsum.photos/seed/cat20/100/100", externalUrl: "#", hidden: false, description: "وصف المتجر", phone: "+966 123 456 789", address: "العنوان هنا", ownerCode: "", allowUpload: false, productDisplayMode: "grid", productDisplayCount: 10, numStrips: 10 }
-                ],
-                "الإكسسوارات": [
-                    { id: "store-cat3-0", name: "إكسسوارات أنيقة", category: "الإكسسوارات", logo: "https://picsum.photos/seed/cat30/100/100", externalUrl: "#", hidden: false, description: "وصف المتجر", phone: "+966 123 456 789", address: "العنوان هنا", ownerCode: "", allowUpload: false, productDisplayMode: "grid", productDisplayCount: 10, numStrips: 10 }
-                ],
-                "الأزياء": [
-                    { id: "store-cat4-0", name: "موضة الشباب", category: "الأزياء", logo: "https://picsum.photos/seed/cat40/100/100", externalUrl: "#", hidden: false, description: "وصف المتجر", phone: "+966 123 456 789", address: "العنوان هنا", ownerCode: "", allowUpload: false, productDisplayMode: "grid", productDisplayCount: 10, numStrips: 10 }
-                ],
-                "الإلكترونيات": [
-                    { id: "store-cat5-0", name: "تك إلكترونيك", category: "الإلكترونيات", logo: "https://picsum.photos/seed/cat50/100/100", externalUrl: "#", hidden: false, description: "وصف المتجر", phone: "+966 123 456 789", address: "العنوان هنا", ownerCode: "", allowUpload: false, productDisplayMode: "grid", productDisplayCount: 10, numStrips: 10 }
-                ]
-            },
-            products: {
-                "store-cat1-0": [
-                    { id: 1, name: "عطر مسك أبيض", oldPrice: 322, newPrice: 156, image: "https://picsum.photos/seed/pcat101/300/300", link: "#" },
-                    { id: 2, name: "دهن عود كمبودي", oldPrice: 432, newPrice: 267, image: "https://picsum.photos/seed/pcat102/300/300", link: "#" }
-                ],
-                "store-cat2-0": [
-                    { id: 1, name: "باقة ورد أحمر", oldPrice: 341, newPrice: 107, image: "https://picsum.photos/seed/pcat201/300/300", link: "#" },
-                    { id: 2, name: "سلة هدايا فاخرة", oldPrice: 480, newPrice: 264, image: "https://picsum.photos/seed/pcat202/300/300", link: "#" }
-                ],
-                "store-cat3-0": [
-                    { id: 1, name: "ساعة رجالية فاخرة", oldPrice: 456, newPrice: 236, image: "https://picsum.photos/seed/pcat301/300/300", link: "#" },
-                    { id: 2, name: "نظارة شمسية", oldPrice: 220, newPrice: 131, image: "https://picsum.photos/seed/pcat302/300/300", link: "#" }
-                ],
-                "store-cat4-0": [
-                    { id: 1, name: "تيشيرت قطني", oldPrice: 550, newPrice: 306, image: "https://picsum.photos/seed/pcat401/300/300", link: "#" },
-                    { id: 2, name: "جينز أزرق", oldPrice: 341, newPrice: 200, image: "https://picsum.photos/seed/pcat402/300/300", link: "#" }
-                ],
-                "store-cat5-0": [
-                    { id: 1, name: "آيفون 15", oldPrice: 249, newPrice: 97, image: "https://picsum.photos/seed/pcat501/300/300", link: "#" },
-                    { id: 2, name: "سامسونج S24", oldPrice: 333, newPrice: 121, image: "https://picsum.photos/seed/pcat502/300/300", link: "#" }
-                ]
-            },
-            testimonials: [
-                { name: "مستخدم 1", image: "https://picsum.photos/seed/user0/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
-                { name: "مستخدم 2", image: "https://picsum.photos/seed/user1/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
-                { name: "مستخدم 3", image: "https://picsum.photos/seed/user2/100/100", rating: 4, review: "تجربة رائعة مع هذا الموقع." }
-            ],
-            footer: {
-                email: "ramzealsalhy@gmail.com",
-                phone: "778562099",
-                whatsapp: "https://wa.me/778562099",
-                social: [
-                    { icon: "fab fa-facebook-f", url: "https://facebook.com" },
-                    { icon: "fab fa-twitter", url: "https://twitter.com" },
-                    { icon: "fab fa-instagram", url: "https://instagram.com" },
-                    { icon: "fab fa-whatsapp", url: "https://whatsapp.com" }
-                ],
-                payments: [
-                    "fab fa-cc-visa",
-                    "fab fa-cc-mastercard",
-                    "fab fa-cc-paypal",
-                    "fab fa-cc-apple-pay",
-                    "fab fa-cc-stripe"
-                ]
-            },
-            settings: {
-                currency: "SAR",
-                language: "ar",
-                showSaudiFlag: false,
-                cartEnabled: false,
-                enableUserProfile: true,
-                orderMethods: { whatsapp: true, email: true, chat: true },
-                trustBadges: [],
-                contests: [],
-                contactEmail: "ramzealsalhy@gmail.com"
-            },
-            messages: []
-        };
-
-        function enhanceData(data) {
-            if (!data.settings) {
-                data.settings = {
-                    currency: "SAR",
-                    language: "ar",
-                    showSaudiFlag: false,
-                    cartEnabled: false,
-                    enableUserProfile: true,
-                    orderMethods: { whatsapp: true, email: true, chat: true },
-                    trustBadges: [],
-                    contests: [],
-                    contactEmail: data.footer?.email || "admin@example.com"
-                };
-            }
-            for (let cat in data.stores) {
-                data.stores[cat].forEach(store => {
-                    if (!store.ownerCode) store.ownerCode = "";
-                    if (store.allowUpload === undefined) store.allowUpload = false;
-                    if (!store.productDisplayMode) store.productDisplayMode = "grid";
-                    if (!store.productDisplayCount) store.productDisplayCount = 10;
-                    if (!store.numStrips) store.numStrips = 10;
-                });
-            }
-            if (!data.carousel) data.carousel = [];
-            if (!data.messages) data.messages = [];
-            return data;
-        }
-
+        // ================== الثوابت والإعدادات ==================
+        const SECRET_CODE = "202122";
+        const ADMIN_SECRET = "MyStrongSecret2025"; // يجب أن يتطابق مع ADMIN_SECRET في Vercel
         let appData = null;
         let currentEditStoreId = null;
         let currentEditProductStoreId = null;
@@ -521,57 +388,21 @@
         let currentEditCarouselId = null;
         let currentEditTestimonialIndex = null;
 
-        const DB_NAME = 'marketsDB';
-        const STORE_NAME = 'appData';
-        const DB_VERSION = 1;
-
-        function initDB() {
-            return new Promise((resolve) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => {
-                    const stored = localStorage.getItem('marketsDB');
-                    if (stored) appData = JSON.parse(stored);
-                    else { appData = enhanceData(defaultData); localStorage.setItem('marketsDB', JSON.stringify(appData)); }
-                    resolve();
-                };
-                request.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const transaction = db.transaction(STORE_NAME, 'readonly');
-                    const store = transaction.objectStore(STORE_NAME);
-                    const getRequest = store.get('main');
-                    getRequest.onsuccess = () => {
-                        if (getRequest.result) appData = getRequest.result;
-                        else { appData = enhanceData(defaultData); saveToDB(); }
-                        resolve();
-                    };
-                };
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
-                };
-            });
+        // ================== دوال مساعدة ==================
+        function sanitizeText(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
-        function saveToDB() {
-            if (!appData) return;
-            if (window.indexedDB) {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const transaction = db.transaction(STORE_NAME, 'readwrite');
-                    const store = transaction.objectStore(STORE_NAME);
-                    store.put(appData, 'main');
-                };
-            }
-            localStorage.setItem('marketsDB', JSON.stringify(appData));
-            updateAutoSaveBadge();
-            if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            
-            // ==== إرسال طلب النشر تلقائيًا بعد الحفظ (مع debounce) ====
-            if (deployTimeout) clearTimeout(deployTimeout);
-            deployTimeout = setTimeout(() => {
-                triggerDeploy();
-            }, 2000); // تأخير 2 ثانية بعد آخر حفظ
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = msg;
+            toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         function updateAutoSaveBadge() {
@@ -584,17 +415,458 @@
             }, 500);
         }
 
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'toast-message';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        function updateCloudStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('cloudStatus');
+            if (!statusDiv) return;
+            statusDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-sync-alt'}"></i> ${message}`;
+            statusDiv.style.backgroundColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+            setTimeout(() => {
+                if (statusDiv.innerHTML === message) {
+                    statusDiv.innerHTML = '';
+                    statusDiv.style.backgroundColor = '#1e293b';
+                }
+            }, 5000);
         }
 
+        // ================== دوال API الأساسية ==================
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/data');
+                if (!response.ok) throw new Error('فشل جلب البيانات');
+                appData = await response.json();
+                refreshAllLists();
+                updateAutoSaveBadge();
+                document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
+                return true;
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                showToast('❌ فشل الاتصال بالخادم', 'error');
+                return false;
+            }
+        }
+
+        async function saveData() {
+            if (!appData) return;
+            try {
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': ADMIN_SECRET
+                    },
+                    body: JSON.stringify(appData)
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'فشل الحفظ');
+                }
+                updateAutoSaveBadge();
+                showToast('✅ تم حفظ التغييرات بنجاح');
+                if (window.broadcastChannel) {
+                    window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+                }
+                return true;
+            } catch (error) {
+                console.error('خطأ في حفظ البيانات:', error);
+                showToast('❌ فشل حفظ التغييرات: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // ================== استيراد وتصدير قاعدة البيانات ==================
+        function exportDatabase() {
+            if (!appData) {
+                showToast('لا توجد بيانات لتصديرها', 'error');
+                return;
+            }
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `markets_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('✅ تم تصدير قاعدة البيانات بنجاح');
+        }
+
+        function importDatabase(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!importedData.categories || !importedData.stores || !importedData.products) {
+                        throw new Error('الملف لا يحتوي على بنية البيانات الصحيحة (يجب أن يحتوي على categories, stores, products)');
+                    }
+                    appData = importedData;
+                    if (!appData.indexes) appData.indexes = {};
+                    saveData().then(() => {
+                        refreshAllLists();
+                        showToast('✅ تم استيراد قاعدة البيانات بنجاح');
+                    }).catch(err => {
+                        showToast('❌ فشل حفظ البيانات بعد الاستيراد: ' + err.message, 'error');
+                    });
+                } catch (err) {
+                    showToast('❌ فشل استيراد الملف: ' + err.message, 'error');
+                }
+            };
+            reader.onerror = () => showToast('❌ خطأ في قراءة الملف', 'error');
+            reader.readAsText(file);
+        }
+
+        // ================== دوال الخدمات السحابية ==================
+        async function loadCloudConfigs() {
+            try {
+                const response = await fetch('/api/cloud-config', {
+                    headers: { 'x-admin-secret': ADMIN_SECRET }
+                });
+                if (!response.ok) throw new Error('فشل جلب الإعدادات');
+                const configs = await response.json();
+                if (configs && configs.autoSync !== undefined) {
+                    document.getElementById('autoSyncCheckbox').checked = configs.autoSync;
+                }
+                const selectedService = configs.selectedService;
+                if (selectedService) {
+                    document.getElementById('cloudServiceSelect').value = selectedService;
+                    renderCloudSettingsForm(selectedService, configs[selectedService]?.config);
+                }
+            } catch (err) {
+                console.warn('فشل تحميل إعدادات السحابة', err);
+            }
+        }
+
+        function renderCloudSettingsForm(service, savedConfig = null) {
+            const container = document.getElementById('cloudSettingsForm');
+            if (!service) {
+                container.innerHTML = '';
+                return;
+            }
+            let fields = '';
+            switch(service) {
+                case 'firebase':
+                    fields = `
+                        <label>معرف المشروع (Project ID)</label>
+                        <input type="text" id="firebaseProjectId" placeholder="your-project-id" value="${savedConfig?.projectId || ''}">
+                        <label>مفتاح API (API Key)</label>
+                        <input type="text" id="firebaseApiKey" placeholder="AIza..." value="${savedConfig?.apiKey || ''}">
+                        <label>معرف التطبيق (App ID)</label>
+                        <input type="text" id="firebaseAppId" placeholder="1:..." value="${savedConfig?.appId || ''}">
+                        <label>رابط قاعدة البيانات (Database URL)</label>
+                        <input type="url" id="firebaseDbUrl" placeholder="https://...firebaseio.com" value="${savedConfig?.databaseURL || ''}">
+                    `;
+                    break;
+                case 'supabase':
+                    fields = `
+                        <label>رابط Supabase URL</label>
+                        <input type="url" id="supabaseUrl" placeholder="https://xyz.supabase.co" value="${savedConfig?.url || ''}">
+                        <label>مفتاح الأنون (Anon Key)</label>
+                        <input type="text" id="supabaseAnonKey" placeholder="eyJ..." value="${savedConfig?.anonKey || ''}">
+                    `;
+                    break;
+                case 'aws_dynamodb':
+                    fields = `
+                        <label>Access Key ID</label>
+                        <input type="text" id="dynamodbAccessKey" placeholder="AKIA..." value="${savedConfig?.accessKey || ''}">
+                        <label>Secret Access Key</label>
+                        <input type="password" id="dynamodbSecretKey" placeholder="..." value="${savedConfig?.secretKey || ''}">
+                        <label>Region</label>
+                        <input type="text" id="dynamodbRegion" placeholder="us-east-1" value="${savedConfig?.region || ''}">
+                        <label>Table Name</label>
+                        <input type="text" id="dynamodbTable" placeholder="markets_data" value="${savedConfig?.table || ''}">
+                    `;
+                    break;
+                case 'firestore':
+                    fields = `
+                        <label>Project ID</label>
+                        <input type="text" id="firestoreProjectId" placeholder="your-project-id" value="${savedConfig?.projectId || ''}">
+                        <label>Service Account Key (JSON)</label>
+                        <textarea id="firestoreServiceAccount" rows="4" placeholder="{\n  \"type\": \"service_account\",\n  ...\n}">${savedConfig?.serviceAccount || ''}</textarea>
+                        <small style="color:#94a3b8;">انسخ محتوى ملف JSON الخاص بحساب الخدمة بالكامل.</small>
+                    `;
+                    break;
+                case 'mongodb_atlas':
+                    fields = `
+                        <label>Connection String (URI)</label>
+                        <input type="text" id="mongodbUri" placeholder="mongodb+srv://..." value="${savedConfig?.uri || ''}">
+                        <label>Database Name</label>
+                        <input type="text" id="mongodbDb" placeholder="markets" value="${savedConfig?.database || ''}">
+                        <label>Collection Name</label>
+                        <input type="text" id="mongodbCollection" placeholder="app_data" value="${savedConfig?.collection || ''}">
+                    `;
+                    break;
+                case 'back4app':
+                    fields = `
+                        <label>Application ID</label>
+                        <input type="text" id="back4appAppId" placeholder="..." value="${savedConfig?.appId || ''}">
+                        <label>REST API Key</label>
+                        <input type="password" id="back4appRestKey" placeholder="..." value="${savedConfig?.restKey || ''}">
+                    `;
+                    break;
+                case 'redis_external':
+                    fields = `
+                        <label>Redis URL</label>
+                        <input type="text" id="redisUrl" placeholder="redis://..." value="${savedConfig?.url || ''}">
+                        <label>Redis Token (اختياري)</label>
+                        <input type="password" id="redisToken" value="${savedConfig?.token || ''}">
+                    `;
+                    break;
+                case 'vercel_json':
+                    fields = `
+                        <label>Team ID (اختياري)</label>
+                        <input type="text" id="vercelJsonTeamId" placeholder="team_..." value="${savedConfig?.teamId || ''}">
+                        <label>Project ID</label>
+                        <input type="text" id="vercelJsonProjectId" placeholder="prj_..." value="${savedConfig?.projectId || ''}">
+                        <label>Access Token</label>
+                        <input type="password" id="vercelJsonToken" placeholder="..." value="${savedConfig?.token || ''}">
+                    `;
+                    break;
+                case 'netlify_json':
+                    fields = `
+                        <label>Site ID</label>
+                        <input type="text" id="netlifySiteId" placeholder="..." value="${savedConfig?.siteId || ''}">
+                        <label>Access Token</label>
+                        <input type="password" id="netlifyToken" placeholder="..." value="${savedConfig?.token || ''}">
+                    `;
+                    break;
+                case 'digitalocean_spaces':
+                    fields = `
+                        <label>Endpoint (e.g., nyc3.digitaloceanspaces.com)</label>
+                        <input type="text" id="doEndpoint" placeholder="nyc3.digitaloceanspaces.com" value="${savedConfig?.endpoint || ''}">
+                        <label>Access Key ID</label>
+                        <input type="text" id="doAccessKey" placeholder="..." value="${savedConfig?.accessKey || ''}">
+                        <label>Secret Access Key</label>
+                        <input type="password" id="doSecretKey" placeholder="..." value="${savedConfig?.secretKey || ''}">
+                        <label>Bucket Name</label>
+                        <input type="text" id="doBucket" placeholder="markets-data" value="${savedConfig?.bucket || ''}">
+                    `;
+                    break;
+                case 'custom_rest':
+                    fields = `
+                        <label>Base URL</label>
+                        <input type="url" id="restBaseUrl" placeholder="https://api.example.com" value="${savedConfig?.baseUrl || ''}">
+                        <label>API Key (اختياري)</label>
+                        <input type="password" id="restApiKey" placeholder="..." value="${savedConfig?.apiKey || ''}">
+                        <label>HTTP Method</label>
+                        <select id="restMethod">
+                            <option value="POST" ${savedConfig?.method === 'POST' ? 'selected' : ''}>POST</option>
+                            <option value="PUT" ${savedConfig?.method === 'PUT' ? 'selected' : ''}>PUT</option>
+                            <option value="PATCH" ${savedConfig?.method === 'PATCH' ? 'selected' : ''}>PATCH</option>
+                        </select>
+                        <label>Data Path (مثلاً /data)</label>
+                        <input type="text" id="restDataPath" placeholder="/data" value="${savedConfig?.dataPath || ''}">
+                        <label>Headers (JSON, اختياري)</label>
+                        <textarea id="restHeaders" rows="3" placeholder='{"Content-Type": "application/json"}'>${savedConfig?.headers ? JSON.stringify(savedConfig.headers, null, 2) : ''}</textarea>
+                    `;
+                    break;
+                case 'vercel_env':
+                    fields = `
+                        <label>UPSTASH_REDIS_REST_URL</label>
+                        <input type="text" id="vercelRedisUrl" placeholder="https://xxxx.upstash.io" value="${savedConfig?.upstashRedisUrl || ''}">
+                        <label>UPSTASH_REDIS_REST_TOKEN</label>
+                        <input type="password" id="vercelRedisToken" placeholder="AYe..." value="${savedConfig?.upstashRedisToken || ''}">
+                        <label>ADMIN_SECRET</label>
+                        <input type="password" id="vercelAdminSecret" placeholder="MyStrongSecret2025" value="${savedConfig?.adminSecret || ''}">
+                        <small style="color:#94a3b8;">هذه المتغيرات تُستخدم لتشغيل الموقع إذا لم تكن مضبوطة في بيئة Vercel.</small>
+                    `;
+                    break;
+                default:
+                    fields = `<p>الإعدادات لهذه الخدمة قيد التطوير. يمكنك إدخال أي بيانات مطلوبة يدويًا.</p>
+                              <textarea id="customSettings" rows="5" placeholder="ضع هنا أي إعدادات مطلوبة (JSON)">${savedConfig?.custom || ''}</textarea>`;
+            }
+            container.innerHTML = fields;
+        }
+
+        async function saveCloudConfig() {
+            const service = document.getElementById('cloudServiceSelect').value;
+            const autoSync = document.getElementById('autoSyncCheckbox').checked;
+            let settings = {};
+            if (service === 'firebase') {
+                settings = {
+                    projectId: document.getElementById('firebaseProjectId').value,
+                    apiKey: document.getElementById('firebaseApiKey').value,
+                    appId: document.getElementById('firebaseAppId').value,
+                    databaseURL: document.getElementById('firebaseDbUrl').value
+                };
+            } else if (service === 'supabase') {
+                settings = {
+                    url: document.getElementById('supabaseUrl').value,
+                    anonKey: document.getElementById('supabaseAnonKey').value
+                };
+            } else if (service === 'aws_dynamodb') {
+                settings = {
+                    accessKey: document.getElementById('dynamodbAccessKey').value,
+                    secretKey: document.getElementById('dynamodbSecretKey').value,
+                    region: document.getElementById('dynamodbRegion').value,
+                    table: document.getElementById('dynamodbTable').value
+                };
+            } else if (service === 'firestore') {
+                settings = {
+                    projectId: document.getElementById('firestoreProjectId').value,
+                    serviceAccount: document.getElementById('firestoreServiceAccount').value
+                };
+            } else if (service === 'mongodb_atlas') {
+                settings = {
+                    uri: document.getElementById('mongodbUri').value,
+                    database: document.getElementById('mongodbDb').value,
+                    collection: document.getElementById('mongodbCollection').value
+                };
+            } else if (service === 'back4app') {
+                settings = {
+                    appId: document.getElementById('back4appAppId').value,
+                    restKey: document.getElementById('back4appRestKey').value
+                };
+            } else if (service === 'redis_external') {
+                settings = {
+                    url: document.getElementById('redisUrl').value,
+                    token: document.getElementById('redisToken').value
+                };
+            } else if (service === 'vercel_json') {
+                settings = {
+                    teamId: document.getElementById('vercelJsonTeamId').value,
+                    projectId: document.getElementById('vercelJsonProjectId').value,
+                    token: document.getElementById('vercelJsonToken').value
+                };
+            } else if (service === 'netlify_json') {
+                settings = {
+                    siteId: document.getElementById('netlifySiteId').value,
+                    token: document.getElementById('netlifyToken').value
+                };
+            } else if (service === 'digitalocean_spaces') {
+                settings = {
+                    endpoint: document.getElementById('doEndpoint').value,
+                    accessKey: document.getElementById('doAccessKey').value,
+                    secretKey: document.getElementById('doSecretKey').value,
+                    bucket: document.getElementById('doBucket').value
+                };
+            } else if (service === 'custom_rest') {
+                settings = {
+                    baseUrl: document.getElementById('restBaseUrl').value,
+                    apiKey: document.getElementById('restApiKey').value,
+                    method: document.getElementById('restMethod').value,
+                    dataPath: document.getElementById('restDataPath').value,
+                    headers: (() => {
+                        try {
+                            return JSON.parse(document.getElementById('restHeaders').value);
+                        } catch(e) {
+                            return null;
+                        }
+                    })()
+                };
+            } else if (service === 'vercel_env') {
+                settings = {
+                    upstashRedisUrl: document.getElementById('vercelRedisUrl').value,
+                    upstashRedisToken: document.getElementById('vercelRedisToken').value,
+                    adminSecret: document.getElementById('vercelAdminSecret').value
+                };
+            } else {
+                settings = { custom: document.getElementById('customSettings')?.value || '' };
+            }
+
+            const payload = { autoSync, selectedService: service };
+            if (service) {
+                payload[service] = { enabled: true, config: settings };
+            }
+
+            try {
+                const response = await fetch('/api/cloud-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': ADMIN_SECRET
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('فشل حفظ الإعدادات');
+                showToast('✅ تم حفظ إعدادات الخدمات السحابية');
+                updateCloudStatus('تم حفظ الإعدادات بنجاح', 'success');
+            } catch (err) {
+                showToast('❌ فشل حفظ الإعدادات: ' + err.message, 'error');
+                updateCloudStatus('فشل حفظ الإعدادات', 'error');
+            }
+        }
+
+        async function manualSync() {
+            updateCloudStatus('جاري المزامنة اليدوية...', 'info');
+            try {
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': ADMIN_SECRET
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ تمت المزامنة اليدوية بنجاح');
+                    updateCloudStatus('تمت المزامنة بنجاح', 'success');
+                } else {
+                    throw new Error(result.error || 'فشل المزامنة');
+                }
+            } catch (err) {
+                showToast('❌ فشل المزامنة اليدوية: ' + err.message, 'error');
+                updateCloudStatus('فشل المزامنة: ' + err.message, 'error');
+            }
+        }
+
+        async function exportToExternal() {
+            updateCloudStatus('جاري تصدير البيانات...', 'info');
+            try {
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': ADMIN_SECRET
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('✅ تم تصدير البيانات إلى الخدمات الخارجية');
+                    updateCloudStatus('تم التصدير بنجاح', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                showToast('❌ فشل التصدير: ' + err.message, 'error');
+                updateCloudStatus('فشل التصدير', 'error');
+            }
+        }
+
+        async function testConnection() {
+            const service = document.getElementById('cloudServiceSelect').value;
+            if (!service) {
+                showToast('الرجاء اختيار خدمة أولاً', 'error');
+                return;
+            }
+            updateCloudStatus(`جاري اختبار الاتصال بـ ${service}...`, 'info');
+            try {
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': ADMIN_SECRET
+                    },
+                    body: JSON.stringify({ test: true, service })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast(`✅ الاتصال بـ ${service} ناجح`);
+                    updateCloudStatus(`تم الاتصال بـ ${service} بنجاح`, 'success');
+                } else {
+                    throw new Error(result.error || 'فشل الاتصال');
+                }
+            } catch (err) {
+                showToast(`❌ فشل الاتصال بـ ${service}: ${err.message}`, 'error');
+                updateCloudStatus(`فشل الاتصال بـ ${service}`, 'error');
+            }
+        }
+
+        // ================== دوال تحديث واجهة المستخدم ==================
         function refreshAllLists() {
             populateCategoriesList();
-            if (document.getElementById('storeCategorySelect').value) populateStoresList(document.getElementById('storeCategorySelect').value);
+            populateStoresList(document.getElementById('storeCategorySelect').value);
             populateProductsList();
             populateCarouselList();
             populateTestimonialsList();
@@ -624,6 +896,7 @@
 
         function populateCategoriesList() {
             const container = document.getElementById('categoriesList');
+            if (!container) return;
             container.innerHTML = '';
             appData.categories.forEach(cat => {
                 const div = document.createElement('div');
@@ -635,7 +908,7 @@
 
         function populateStoresList(category) {
             const container = document.getElementById('storesList');
-            if (!category || category === 'اختر الفئة') return;
+            if (!container || !category) return;
             container.innerHTML = '';
             const stores = appData.stores[category] || [];
             stores.forEach(store => {
@@ -648,6 +921,7 @@
 
         function populateProductsList() {
             const container = document.getElementById('productsList');
+            if (!container) return;
             container.innerHTML = '';
             for (let storeId in appData.products) {
                 const store = findStoreById(storeId);
@@ -664,6 +938,7 @@
 
         function populateCarouselList() {
             const container = document.getElementById('carouselList');
+            if (!container) return;
             container.innerHTML = '';
             (appData.carousel || []).forEach(ad => {
                 const div = document.createElement('div');
@@ -675,6 +950,7 @@
 
         function populateTestimonialsList() {
             const container = document.getElementById('testimonialsList');
+            if (!container) return;
             container.innerHTML = '';
             appData.testimonials.forEach((t, idx) => {
                 const div = document.createElement('div');
@@ -686,6 +962,7 @@
 
         function populateContestsList() {
             const container = document.getElementById('contestsList');
+            if (!container) return;
             container.innerHTML = '';
             (appData.settings.contests || []).forEach((contest, idx) => {
                 const div = document.createElement('div');
@@ -697,6 +974,7 @@
 
         function populateTrustBadgesList() {
             const container = document.getElementById('trustBadgesList');
+            if (!container) return;
             container.innerHTML = '';
             (appData.settings.trustBadges || []).forEach((badge, idx) => {
                 const div = document.createElement('div');
@@ -708,6 +986,7 @@
 
         function populateMessagesList() {
             const container = document.getElementById('messagesList');
+            if (!container) return;
             container.innerHTML = '';
             (appData.messages || []).forEach((msg, idx) => {
                 const div = document.createElement('div');
@@ -784,9 +1063,7 @@
             return null;
         }
 
-        function sanitizeText(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
-
-        // ================== دوال CRUD ==================
+        // ================== دوال CRUD (مبسطة) ==================
         window.editCategory = function(id) {
             const cat = appData.categories.find(c => c.id === id);
             if (!cat) return;
@@ -810,7 +1087,7 @@
                 appData.categories = appData.categories.filter(c => c.id !== id);
                 const catName = appData.categories.find(c => c.id === id)?.name;
                 if (catName && appData.stores[catName]) delete appData.stores[catName];
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف الفئة بنجاح');
             }
@@ -829,7 +1106,6 @@
             document.getElementById('storeHidden').checked = store.hidden;
             document.getElementById('storeProductDisplayMode').value = store.productDisplayMode || 'grid';
             document.getElementById('storeProductDisplayCount').value = store.productDisplayCount || 10;
-            document.getElementById('storeNumStrips').value = store.numStrips || 10;
             document.getElementById('addStoreBtn').style.display = 'none';
             document.getElementById('updateStoreBtn').style.display = 'block';
         };
@@ -838,7 +1114,7 @@
             const store = findStoreById(storeId);
             if (store) {
                 store.hidden = !store.hidden;
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast(store.hidden ? 'تم إخفاء المتجر' : 'تم إظهار المتجر');
             }
@@ -851,7 +1127,7 @@
                     if (index !== -1) {
                         appData.stores[cat].splice(index, 1);
                         delete appData.products[storeId];
-                        saveToDB();
+                        saveData();
                         refreshAllLists();
                         showToast('تم حذف المتجر');
                         break;
@@ -879,7 +1155,7 @@
                 const index = appData.products[storeId].findIndex(p => p.id == productId);
                 if (index !== -1) {
                     appData.products[storeId].splice(index, 1);
-                    saveToDB();
+                    saveData();
                     refreshAllLists();
                     showToast('تم حذف المنتج');
                 }
@@ -902,7 +1178,7 @@
         window.deleteCarousel = function(adId) {
             if (confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
                 appData.carousel = appData.carousel.filter(a => a.id !== adId);
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف الإعلان');
             }
@@ -923,7 +1199,7 @@
         window.deleteTestimonial = function(index) {
             if (confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
                 appData.testimonials.splice(index, 1);
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف التقييم');
             }
@@ -943,7 +1219,7 @@
         window.deleteContest = function(index) {
             if (confirm('هل أنت متأكد من حذف هذه المسابقة؟')) {
                 appData.settings.contests.splice(index, 1);
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف المسابقة');
             }
@@ -952,7 +1228,7 @@
         window.deleteTrustBadge = function(index) {
             if (confirm('هل أنت متأكد من حذف هذه الشارة؟')) {
                 appData.settings.trustBadges.splice(index, 1);
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف الشارة');
             }
@@ -961,7 +1237,7 @@
         window.deleteMessage = function(index) {
             if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
                 appData.messages.splice(index, 1);
-                saveToDB();
+                saveData();
                 refreshAllLists();
                 showToast('تم حذف الرسالة');
             }
@@ -986,7 +1262,7 @@
             };
             appData.categories.push(newCat);
             if (!appData.stores[newCat.name]) appData.stores[newCat.name] = [];
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('categoryForm').reset();
             document.getElementById('addCategoryBtn').style.display = 'block';
@@ -1017,7 +1293,7 @@
                 appData.stores[newName] = appData.stores[oldName];
                 delete appData.stores[oldName];
             }
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('categoryForm').reset();
             document.getElementById('addCategoryBtn').style.display = 'block';
@@ -1044,13 +1320,12 @@
                 ownerCode: '',
                 allowUpload: false,
                 productDisplayMode: document.getElementById('storeProductDisplayMode').value,
-                productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value),
-                numStrips: parseInt(document.getElementById('storeNumStrips').value)
+                productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value)
             };
             if (!appData.stores[category]) appData.stores[category] = [];
             appData.stores[category].push(newStore);
             appData.products[newId] = [];
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('storeForm').reset();
             document.getElementById('addStoreBtn').style.display = 'block';
@@ -1071,8 +1346,7 @@
             store.hidden = document.getElementById('storeHidden').checked;
             store.productDisplayMode = document.getElementById('storeProductDisplayMode').value;
             store.productDisplayCount = parseInt(document.getElementById('storeProductDisplayCount').value);
-            store.numStrips = parseInt(document.getElementById('storeNumStrips').value);
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('storeForm').reset();
             document.getElementById('addStoreBtn').style.display = 'block';
@@ -1097,7 +1371,7 @@
             };
             if (!appData.products[storeId]) appData.products[storeId] = [];
             appData.products[storeId].push(newProduct);
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('productForm').reset();
             document.getElementById('addProductBtn').style.display = 'block';
@@ -1114,7 +1388,7 @@
             product.newPrice = parseFloat(document.getElementById('productNewPrice').value);
             product.image = document.getElementById('productImage').value;
             product.link = document.getElementById('productLink').value;
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('productForm').reset();
             document.getElementById('addProductBtn').style.display = 'block';
@@ -1137,7 +1411,7 @@
             };
             if (!appData.carousel) appData.carousel = [];
             appData.carousel.push(newAd);
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('carouselForm').reset();
             document.getElementById('addCarouselBtn').style.display = 'block';
@@ -1157,7 +1431,7 @@
                 order: parseInt(document.getElementById('carouselOrder').value),
                 active: document.getElementById('carouselActive').checked
             };
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('carouselForm').reset();
             document.getElementById('addCarouselBtn').style.display = 'block';
@@ -1176,7 +1450,7 @@
                 review: document.getElementById('testimonialReview').value
             };
             appData.testimonials.push(newTestimonial);
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('testimonialForm').reset();
             document.getElementById('addTestimonialBtn').style.display = 'block';
@@ -1192,7 +1466,7 @@
                 rating: parseInt(document.getElementById('testimonialRating').value),
                 review: document.getElementById('testimonialReview').value
             };
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('testimonialForm').reset();
             document.getElementById('addTestimonialBtn').style.display = 'block';
@@ -1211,7 +1485,7 @@
             };
             if (!appData.settings.contests) appData.settings.contests = [];
             appData.settings.contests.push(newContest);
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('contestForm').reset();
             document.getElementById('addContestBtn').style.display = 'block';
@@ -1227,7 +1501,7 @@
                 description: document.getElementById('contestDescription').value,
                 endDate: document.getElementById('contestEndDate').value
             };
-            saveToDB();
+            saveData();
             refreshAllLists();
             document.getElementById('contestForm').reset();
             document.getElementById('addContestBtn').style.display = 'block';
@@ -1247,14 +1521,14 @@
                 chat: document.getElementById('orderChatCheckbox').checked
             };
             appData.settings.contactEmail = document.getElementById('contactEmail').value;
-            saveToDB();
+            saveData();
             showToast('تم حفظ الإعدادات العامة');
         });
 
         document.getElementById('saveTrustBadges').addEventListener('click', () => {
             const badges = document.getElementById('trustBadgesInput').value.split('\n').filter(b => b.trim());
             appData.settings.trustBadges = badges;
-            saveToDB();
+            saveData();
             refreshAllLists();
             showToast('تم حفظ شارات الثقة');
         });
@@ -1275,7 +1549,7 @@
                 adFontSize: document.getElementById('adFontSize').value,
                 generalFontSize: document.getElementById('generalFontSize').value
             };
-            saveToDB();
+            saveData();
             showToast('تم حفظ إعدادات التصميم');
         });
 
@@ -1284,14 +1558,14 @@
             appData.header.subtitle = document.getElementById('headerSubtitleInput').value;
             const images = document.getElementById('headerImagesInput').value.split('\n').filter(img => img.trim());
             appData.header.images = images;
-            saveToDB();
+            saveData();
             showToast('تم حفظ إعدادات الترويسة');
         });
 
         document.getElementById('saveTickerBtn').addEventListener('click', () => {
             const tickerTexts = document.getElementById('tickerTextsInput').value.split('\n').filter(t => t.trim());
             appData.ticker = tickerTexts;
-            saveToDB();
+            saveData();
             showToast('تم حفظ شريط الإعلانات');
         });
 
@@ -1307,7 +1581,7 @@
             });
             const paymentsText = document.getElementById('footerPayments').value;
             appData.footer.payments = paymentsText.split(',').map(p => p.trim()).filter(p => p);
-            saveToDB();
+            saveData();
             showToast('تم حفظ التذييل');
         });
 
@@ -1318,20 +1592,16 @@
             if (store) {
                 store.ownerCode = document.getElementById('storeOwnerCode').value;
                 store.allowUpload = document.getElementById('storeAllowUpload').checked;
-                saveToDB();
+                saveData();
                 showToast('تم حفظ أذونات المتجر');
             }
         });
 
-        document.getElementById('publishBtn').addEventListener('click', () => {
-            saveToDB();
-            if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            showToast('✅ تم نشر التحديثات');
-        });
-
-        document.getElementById('previewChangesBtn').addEventListener('click', () => {
-            saveToDB();
-            if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+        document.getElementById('previewChangesBtn').addEventListener('click', async () => {
+            await saveData();
+            if (window.broadcastChannel) {
+                window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+            }
             window.open('index.html?preview=' + Date.now(), '_blank');
         });
 
@@ -1341,46 +1611,15 @@
             showToast('✅ تم إعادة تعيين العداد');
         });
 
-        // ================== استيراد/تصدير JSON ==================
-        document.getElementById('exportJsonBtn').addEventListener('click', () => {
-            const dataStr = JSON.stringify(appData, null, 2);
-            const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "markets-data.json";
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('تم تصدير الملف بنجاح');
-        });
-
-        document.getElementById('importJsonBtn').addEventListener('click', () => {
+        document.getElementById('exportDbBtn').addEventListener('click', exportDatabase);
+        document.getElementById('importDbBtn').addEventListener('click', () => {
             document.getElementById('importFile').click();
         });
-
         document.getElementById('importFile').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const importedData = JSON.parse(ev.target.result);
-                    if (!importedData.categories || !importedData.stores || !importedData.products) {
-                        throw new Error('ملف غير صالح: البيانات لا تحتوي على الهيكل المطلوب');
-                    }
-                    appData = enhanceData(importedData);
-                    saveToDB();
-                    refreshAllLists();
-                    showToast('✅ تم استيراد البيانات بنجاح');
-                    document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
-                } catch (err) {
-                    alert('فشل استيراد الملف: ' + err.message);
-                }
-            };
-            reader.readAsText(file);
+            if (e.target.files.length) importDatabase(e.target.files[0]);
+            e.target.value = '';
         });
 
-        // أحداث تغيير القوائم المنسدلة
         document.getElementById('storeCategorySelect').addEventListener('change', (e) => {
             populateStoresList(e.target.value);
         });
@@ -1427,20 +1666,17 @@
             }
         });
 
-        // ================== تسجيل الدخول ==================
+        // ================== بدء التشغيل ==================
         window.checkLogin = async function() {
             const code = document.getElementById('secretCodeInput').value;
-            if (code === "202122") {
+            if (code === SECRET_CODE) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
                 document.getElementById('previewChangesBtn').style.display = 'block';
                 sessionStorage.setItem('adminLoggedIn', 'true');
-                await initDB();
-                refreshAllLists();
+                await fetchData();
+                await loadCloudConfigs();
                 document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
-                setInterval(() => {
-                    if (appData) saveToDB();
-                }, 30000);
                 window.broadcastChannel = new BroadcastChannel('markets_channel');
             } else {
                 alert('الرمز غير صحيح');
@@ -1454,6 +1690,14 @@
         if (sessionStorage.getItem('adminLoggedIn') === 'true') {
             checkLogin();
         }
+
+        document.getElementById('saveCloudConfigBtn').addEventListener('click', saveCloudConfig);
+        document.getElementById('exportDataBtn').addEventListener('click', exportToExternal);
+        document.getElementById('manualSyncBtn').addEventListener('click', manualSync);
+        document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
+        document.getElementById('cloudServiceSelect').addEventListener('change', (e) => {
+            renderCloudSettingsForm(e.target.value);
+        });
     </script>
 </body>
 </html>
