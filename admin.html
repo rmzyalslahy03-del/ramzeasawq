@@ -2,103 +2,130 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src * data:; font-src *; connect-src *;">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>لوحة التحكم - أسواق ريادة المستهلك</title>
-    <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <!-- ملفات خارجية (إصدارات محددة) -->
+    <link rel="stylesheet" href="style.css?v=2">
+    <script src="app.js?v=5"></script>
     <style>
+        /* أنماط لوحة التحكم الكاملة (نفس الكود الأصلي) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: linear-gradient(145deg, #0b1a33, #1e2b3c); color: #e2e8f0; padding: 20px; min-height: 100vh; }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10000; }
-        .login-box { background: rgba(15, 23, 42, 0.95); padding: 40px; border-radius: 40px; text-align: center; width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(251,191,36,0.3); }
+        body { background: linear-gradient(145deg, #0b1a33, #1e2b3c); color: #e2e8f0; padding: 20px; }
+
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .login-box { background: #0f172a; padding: 40px; border-radius: 40px; text-align: center; width: 300px; }
         .login-box h2 { color: #fbbf24; margin-bottom: 20px; }
-        .login-box input { width: 100%; padding: 12px; border-radius: 40px; border: none; margin-bottom: 20px; background: #1e293b; color: white; transition: all 0.2s; }
-        .login-box input:focus { outline: none; box-shadow: 0 0 0 2px #fbbf24; }
-        .login-box button { background: #fbbf24; color: #0f172a; border: none; padding: 12px 30px; border-radius: 40px; font-weight: bold; cursor: pointer; width: 100%; transition: transform 0.2s, background 0.2s; }
-        .login-box button:hover { background: #f59e0b; transform: scale(1.02); }
+        .login-box input { width: 100%; padding: 12px; border-radius: 40px; border: none; margin-bottom: 20px; background: #1e293b; color: white; }
+        .login-box button { background: #fbbf24; color: #0f172a; border: none; padding: 12px 30px; border-radius: 40px; font-weight: bold; cursor: pointer; width: 100%; }
+
         .admin-container { max-width: 1400px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 30px; color: #fbbf24; font-size: 2.2rem; }
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; }
-        .admin-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border-radius: 32px; padding: 24px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
-        .admin-card:hover { transform: translateY(-5px); border-color: rgba(251,191,36,0.3); }
-        .admin-card h2 { color: #fbbf24; margin-bottom: 20px; border-bottom: 2px solid #334155; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .admin-card h2 i { font-size: 1.4rem; }
-        .admin-form { display: flex; flex-direction: column; gap: 16px; }
-        .admin-form label { font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 8px; color: #cbd5e1; }
-        .admin-form input, .admin-form textarea, .admin-form select { padding: 12px 16px; border-radius: 40px; border: none; background: #1e293b; color: white; font-size: 0.95rem; transition: all 0.2s; }
-        .admin-form input:focus, .admin-form textarea:focus, .admin-form select:focus { outline: none; box-shadow: 0 0 0 2px #fbbf24; background: #0f172a; }
-        .admin-form button { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; border: none; padding: 12px; border-radius: 40px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .admin-form button:hover { transform: scale(1.02); filter: brightness(1.05); box-shadow: 0 4px 12px rgba(251,191,36,0.3); }
-        .admin-list { background: #0f172a; border-radius: 24px; padding: 16px; max-height: 320px; overflow-y: auto; }
-        .admin-item { background: #1e293b; padding: 12px 16px; border-radius: 60px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-        .admin-item:hover { background: #2d3a4f; transform: translateX(-2px); }
-        .admin-item button { background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 40px; cursor: pointer; margin-right: 8px; transition: all 0.2s; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        h1 { text-align: center; margin-bottom: 30px; color: #fbbf24; }
+
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+
+        .admin-card {
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 30px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155; transition: 0.3s;
+        }
+        .admin-card:hover { transform: translateY(-5px); }
+        .admin-card h2 { color: #fbbf24; margin-bottom: 15px; border-bottom: 2px solid #334155; padding-bottom: 10px; }
+
+        .admin-form { display: flex; flex-direction: column; gap: 15px; }
+        .admin-form input, .admin-form textarea, .admin-form select { padding: 12px; border-radius: 40px; border: none; background: #1e293b; color: white; }
+        .admin-form button { background: #fbbf24; color: #0f172a; border: none; padding: 12px; border-radius: 40px; font-weight: 700; cursor: pointer; }
+
+        .admin-list { background: #1e293b; border-radius: 20px; padding: 15px; max-height: 300px; overflow-y: auto; }
+        .admin-item {
+            background: #2d3a4f; padding: 10px 15px; border-radius: 40px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .admin-item button { background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 30px; cursor: pointer; margin-right: 5px; }
         .admin-item button.edit { background: #3b82f6; }
         .admin-item button.toggle-hidden { background: #f59e0b; }
-        .admin-item button:hover { transform: scale(1.02); filter: brightness(1.1); }
-        .back-link { display: inline-flex; align-items: center; gap: 8px; background: #3b82f6; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; font-weight: 600; margin-bottom: 24px; transition: all 0.2s; }
-        .back-link:hover { background: #2563eb; transform: translateX(-4px); }
-        .toast-message { position: fixed; bottom: 24px; left: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: 60px; font-weight: 600; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 9999; animation: slideIn 0.3s ease; backdrop-filter: blur(4px); }
+        .hidden-store { opacity: 0.6; text-decoration: line-through; }
+
+        .image-preview { width: 100px; height: 100px; border-radius: 10px; object-fit: cover; border: 2px solid #fbbf24; margin-top: 5px; display: none; }
+        .image-preview.show { display: block; }
+        .image-preview-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .image-preview-grid img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 2px solid #fbbf24; }
+
+        .back-link { display: inline-block; background: #3b82f6; color: white; padding: 10px 25px; border-radius: 40px; text-decoration: none; font-weight: 600; margin-bottom: 20px; }
+        .back-link:hover { background: #2563eb; }
+
+        .toast-message {
+            position: fixed; bottom: 20px; left: 20px; background: #10b981; color: white; padding: 12px 24px;
+            border-radius: 40px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; animation: slideIn 0.3s ease;
+        }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .auto-save-badge { position: fixed; top: 16px; right: 16px; background: #fbbf24; color: #0f172a; padding: 6px 16px; border-radius: 40px; font-size: 13px; font-weight: bold; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 6px; }
-        .preview-btn { position: fixed; bottom: 24px; right: 24px; background: #3b82f6; color: white; border: none; padding: 12px 28px; border-radius: 60px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+
+        .auto-save-badge {
+            position: fixed; top: 10px; right: 10px; background: #fbbf24; color: #0f172a;
+            padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 9999;
+        }
+
+        .update-indicator {
+            position: fixed; top: 10px; left: 10px; background: #10b981; color: white; padding: 5px 10px;
+            border-radius: 20px; font-size: 12px; z-index: 9999; animation: fadeOut 3s ease forwards;
+        }
+        @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+
+        .preview-btn {
+            position: fixed; bottom: 20px; right: 20px; background: #3b82f6; color: white; border: none;
+            padding: 12px 25px; border-radius: 40px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; transition: 0.2s;
+        }
         .preview-btn:hover { background: #2563eb; transform: scale(1.05); }
-        .hidden-store { opacity: 0.6; background: #4b5563; }
-        .cloud-config-section { grid-column: 1 / -1; }
-        @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } .admin-card { padding: 18px; } }
-        /* تحسين الصور */
-        img { max-width: 100%; height: auto; display: block; border-radius: 12px; }
-        .admin-list img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; }
-        /* أيقونات الأزرار */
-        .admin-form button i, .admin-item button i { font-size: 0.9rem; }
-        .admin-item button i { margin-left: 4px; }
     </style>
 </head>
 <body>
+    <!-- شاشة تسجيل الدخول -->
     <div id="loginOverlay">
         <div class="login-box">
-            <h2><i class="fas fa-lock"></i> تسجيل الدخول</h2>
+            <h2>تسجيل الدخول</h2>
             <input type="password" id="secretCodeInput" placeholder="الرمز السري">
-            <button onclick="checkLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
+            <button onclick="checkLogin()">دخول</button>
         </div>
     </div>
 
+    <!-- المحتوى الرئيسي (يظهر بعد تسجيل الدخول) -->
     <div class="admin-container" id="adminContent" style="display: none;">
-        <div class="auto-save-badge" id="autoSaveBadge"><i class="fas fa-check-circle"></i> جميع التغييرات محفوظة</div>
-        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> العودة للموقع</a>
-        <h1><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h1>
+        <div class="auto-save-badge" id="autoSaveBadge">✓ جميع التغييرات محفوظة</div>
+        <a href="index.html" class="back-link">← العودة للموقع</a>
+        <h1>لوحة التحكم</h1>
 
         <div class="admin-grid">
-            <!-- عداد الزوار -->
+            <!-- بطاقة عداد الزوار -->
             <div class="admin-card">
-                <h2><i class="fas fa-users"></i> عداد الزوار</h2>
-                <div style="background:#fbbf24; color:#0f172a; padding:20px; border-radius:60px; text-align:center; font-size:1.8rem; font-weight:bold;">
+                <h2>عداد الزوار</h2>
+                <div style="background:#fbbf24; color:#0f172a; padding:15px; border-radius:40px; text-align:center; font-size:1.5rem;">
                     عدد الزوار: <span id="visitorCount">0</span>
                 </div>
-                <button id="resetVisitorBtn" style="background:#f59e0b; padding:12px; border:none; border-radius:60px; font-weight:bold; width:100%; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-sync-alt"></i> إعادة تعيين العداد</button>
+                <button id="resetVisitorBtn" style="background:#f59e0b; padding:10px; border:none; border-radius:40px; font-weight:bold; width:100%; margin-top:10px;">إعادة تعيين العداد</button>
             </div>
 
-            <!-- نشر التحديثات -->
+            <!-- بطاقة نشر التحديثات -->
             <div class="admin-card">
-                <h2><i class="fas fa-globe"></i> نشر التحديثات</h2>
-                <button id="publishBtn" style="background:#10b981; color:white; border:none; padding:14px; border-radius:60px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:10px;">
-                    <i class="fas fa-broadcast-tower"></i> نشر التحديثات إلى جميع الزوار
+                <h2>نشر التحديثات</h2>
+                <button id="publishBtn" style="background:#10b981; color:white; border:none; padding:15px; border-radius:40px; font-weight:700; cursor:pointer; width:100%;">
+                    <i class="fas fa-globe"></i> نشر التحديثات عالمياً
                 </button>
-                <p style="margin-top:12px; color:#94a3b8; font-size:0.85rem;">عند الضغط، سيتم حفظ البيانات وإخطار جميع الزوار بالتحديث.</p>
+                <p style="margin-top:10px; color:#94a3b8;">عند الضغط، سيتم إرسال جميع التعديلات إلى الخادم وتظهر للزوار خلال ثوانٍ.</p>
             </div>
 
             <!-- الإعدادات العامة -->
             <div class="admin-card">
-                <h2><i class="fas fa-cogs"></i> الإعدادات العامة</h2>
+                <h2>الإعدادات العامة</h2>
                 <div class="admin-form">
-                    <label><i class="fas fa-coins"></i> العملة</label>
+                    <label>العملة</label>
                     <select id="currencySelect">
                         <option value="SAR">ريال سعودي (ر.س)</option>
                         <option value="USD">دولار ($)</option>
@@ -106,90 +133,91 @@
                         <option value="QAR">ريال قطري (ر.ق)</option>
                         <option value="AED">درهم إماراتي (د.إ)</option>
                     </select>
-                    <label><i class="fas fa-language"></i> اللغة</label>
+                    <label>اللغة</label>
                     <select id="languageSelect">
                         <option value="ar">العربية</option>
                         <option value="en">English</option>
                     </select>
-                    <label><input type="checkbox" id="showSaudiFlagCheckbox"> <i class="fas fa-flag-checkered"></i> عرض علم السعودية</label>
-                    <label><input type="checkbox" id="cartEnabledCheckbox"> <i class="fas fa-shopping-cart"></i> تفعيل سلة التسوق</label>
-                    <label><input type="checkbox" id="enableUserProfileCheckbox"> <i class="fas fa-user-circle"></i> تفعيل صفحة المستخدم</label>
-                    <h3><i class="fas fa-truck"></i> طرق إرسال الطلبات</h3>
-                    <label><input type="checkbox" id="orderWhatsappCheckbox"> <i class="fab fa-whatsapp"></i> واتساب</label>
-                    <label><input type="checkbox" id="orderEmailCheckbox"> <i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                    <label><input type="checkbox" id="orderChatCheckbox"> <i class="fas fa-comments"></i> محادثة المدير</label>
-                    <label><i class="fas fa-envelope-open-text"></i> البريد الإلكتروني لاستقبال رسائل الاتصال</label>
+                    <label><input type="checkbox" id="showSaudiFlagCheckbox"> عرض علم السعودية</label>
+                    <label><input type="checkbox" id="cartEnabledCheckbox"> تفعيل سلة التسوق</label>
+                    <label><input type="checkbox" id="enableUserProfileCheckbox"> تفعيل صفحة المستخدم</label>
+                    <h3>طرق إرسال الطلبات</h3>
+                    <label><input type="checkbox" id="orderWhatsappCheckbox"> واتساب</label>
+                    <label><input type="checkbox" id="orderEmailCheckbox"> البريد الإلكتروني</label>
+                    <label><input type="checkbox" id="orderChatCheckbox"> محادثة المدير</label>
+                    <label>البريد الإلكتروني لاستقبال رسائل الاتصال</label>
                     <input type="email" id="contactEmail" placeholder="admin@example.com">
-                    <button id="saveGeneralSettings"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+                    <button id="saveGeneralSettings">حفظ الإعدادات</button>
                 </div>
             </div>
 
             <!-- شارات الثقة -->
             <div class="admin-card">
-                <h2><i class="fas fa-shield-alt"></i> شارات الثقة</h2>
+                <h2>شارات الثقة</h2>
                 <div class="admin-form">
                     <textarea id="trustBadgesInput" rows="3" placeholder="روابط الصور (كل رابط في سطر)"></textarea>
-                    <button id="saveTrustBadges"><i class="fas fa-save"></i> حفظ الشارات</button>
+                    <button id="saveTrustBadges">حفظ الشارات</button>
                 </div>
                 <div class="admin-list" id="trustBadgesList"></div>
             </div>
 
             <!-- المسابقات -->
             <div class="admin-card">
-                <h2><i class="fas fa-trophy"></i> المسابقات</h2>
+                <h2>المسابقات</h2>
                 <div class="admin-form" id="contestForm">
                     <input type="hidden" id="editContestId">
                     <input type="text" id="contestName" placeholder="اسم المسابقة">
                     <textarea id="contestDescription" placeholder="وصف المسابقة"></textarea>
                     <input type="date" id="contestEndDate">
-                    <button id="addContestBtn"><i class="fas fa-plus-circle"></i> إضافة مسابقة</button>
-                    <button id="updateContestBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث المسابقة</button>
+                    <button id="addContestBtn">➕ إضافة مسابقة</button>
+                    <button id="updateContestBtn" style="display:none;">تحديث المسابقة</button>
                 </div>
                 <div class="admin-list" id="contestsList"></div>
             </div>
 
             <!-- إعدادات التصميم -->
             <div class="admin-card">
-                <h2><i class="fas fa-palette"></i> إعدادات التصميم</h2>
+                <h2>إعدادات التصميم</h2>
                 <div class="admin-form">
-                    <label>خلفية الأقسام</label><input type="text" id="categoryBg" value="linear-gradient(145deg, #f9eef7, #f3d9e8)">
-                    <label>لون نص الفئات</label><input type="color" id="categoryText" value="#9b4d96">
-                    <label>حجم خط الفئات</label><input type="text" id="categoryFontSize" value="2rem">
-                    <label>خلفية المتاجر</label><input type="color" id="storeBg" value="#ffffff">
-                    <label>لون نص المتاجر</label><input type="color" id="storeText" value="#1e293b">
-                    <label>حجم خط المتاجر</label><input type="text" id="storeFontSize" value="1.3rem">
-                    <label>خلفية المنتجات</label><input type="color" id="productBg" value="#ffffff">
-                    <label>لون نص المنتجات</label><input type="color" id="productText" value="#1e293b">
-                    <label>حجم خط المنتجات</label><input type="text" id="productFontSize" value="0.85rem">
-                    <label>خلفية الإعلانات</label><input type="text" id="adBg" value="linear-gradient(90deg, #fbbf24, #f59e0b)">
-                    <label>لون نص الإعلانات</label><input type="color" id="adText" value="#0f172a">
-                    <label>حجم خط الإعلانات</label><input type="text" id="adFontSize" value="1.1rem">
-                    <label>حجم الخط العام</label><input type="text" id="generalFontSize" value="1rem">
-                    <button id="saveDesignSettings"><i class="fas fa-save"></i> حفظ</button>
+                    <label>خلفية الأقسام</label><input type="text" id="categoryBg">
+                    <label>لون نص الفئات</label><input type="color" id="categoryText">
+                    <label>حجم خط الفئات</label><input type="text" id="categoryFontSize" placeholder="2rem">
+                    <label>خلفية المتاجر</label><input type="color" id="storeBg">
+                    <label>لون نص المتاجر</label><input type="color" id="storeText">
+                    <label>حجم خط المتاجر</label><input type="text" id="storeFontSize" placeholder="1.3rem">
+                    <label>خلفية المنتجات</label><input type="color" id="productBg">
+                    <label>لون نص المنتجات</label><input type="color" id="productText">
+                    <label>حجم خط المنتجات</label><input type="text" id="productFontSize" placeholder="0.85rem">
+                    <label>خلفية الإعلانات</label><input type="text" id="adBg" placeholder="linear-gradient(...)">
+                    <label>لون نص الإعلانات</label><input type="color" id="adText">
+                    <label>حجم خط الإعلانات</label><input type="text" id="adFontSize" placeholder="1.1rem">
+                    <label>حجم الخط العام</label><input type="text" id="generalFontSize" placeholder="1rem">
+                    <button id="saveDesignSettings">حفظ</button>
                 </div>
             </div>
 
             <!-- الإعلانات الدوارة -->
             <div class="admin-card">
-                <h2><i class="fas fa-images"></i> الإعلانات الدوارة</h2>
+                <h2>الإعلانات الدوارة</h2>
                 <div class="admin-form" id="carouselForm">
                     <input type="hidden" id="editCarouselId">
                     <input type="text" id="carouselName" placeholder="اسم الإعلان">
                     <input type="url" id="carouselLink" placeholder="الرابط">
                     <label>صورة الإعلان</label>
                     <input type="text" id="carouselImage" placeholder="رابط الصورة">
-                    <input type="file" id="carouselImageFile" accept="image/*">
+                    <input type="file" id="carouselImageFile" accept="image/*" onchange="previewImage(this, 'previewCarousel')">
+                    <img id="previewCarousel" class="image-preview">
                     <input type="number" id="carouselOrder" placeholder="الترتيب">
                     <label><input type="checkbox" id="carouselActive" checked> نشط</label>
-                    <button id="addCarouselBtn"><i class="fas fa-plus-circle"></i> إضافة</button>
-                    <button id="updateCarouselBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث</button>
+                    <button id="addCarouselBtn">➕ إضافة</button>
+                    <button id="updateCarouselBtn" style="display:none;">تحديث</button>
                 </div>
                 <div class="admin-list" id="carouselList"></div>
             </div>
 
-            <!-- الترويسة العلوية -->
+            <!-- الترويسة -->
             <div class="admin-card">
-                <h2><i class="fas fa-heading"></i> الترويسة العلوية</h2>
+                <h2>الترويسة العلوية</h2>
                 <div class="admin-form">
                     <input type="text" id="headerTitleInput" placeholder="العنوان">
                     <input type="text" id="headerSubtitleInput" placeholder="النص الفرعي">
@@ -197,22 +225,22 @@
                     <textarea id="headerImagesInput" rows="3"></textarea>
                     <label>رفع صور</label>
                     <input type="file" id="headerImagesFile" accept="image/*" multiple>
-                    <button id="saveHeaderBtn"><i class="fas fa-save"></i> حفظ</button>
+                    <button id="saveHeaderBtn">حفظ</button>
                 </div>
             </div>
 
             <!-- شريط الإعلانات النصي -->
             <div class="admin-card">
-                <h2><i class="fas fa-scroll"></i> شريط الإعلانات النصي</h2>
+                <h2>شريط الإعلانات النصي</h2>
                 <div class="admin-form">
                     <textarea id="tickerTextsInput" rows="3" placeholder="نص1, نص2, نص3"></textarea>
-                    <button id="saveTickerBtn"><i class="fas fa-save"></i> حفظ</button>
+                    <button id="saveTickerBtn">حفظ</button>
                 </div>
             </div>
 
             <!-- الفئات -->
             <div class="admin-card">
-                <h2><i class="fas fa-tags"></i> الفئات</h2>
+                <h2>الفئات</h2>
                 <div class="admin-form" id="categoryForm">
                     <input type="hidden" id="editCategoryId">
                     <input type="text" id="categoryName" placeholder="الاسم" required>
@@ -220,28 +248,31 @@
                     <input type="text" id="categorySlug" placeholder="slug" required>
                     <input type="color" id="categoryColor" value="#9b4d96">
                     <label>الصورة المميزة</label><input type="text" id="categoryFeaturedImage">
-                    <input type="file" id="categoryFeaturedImageFile" accept="image/*">
+                    <input type="file" id="categoryFeaturedImageFile" accept="image/*" onchange="previewImage(this, 'previewFeaturedImage')">
+                    <img id="previewFeaturedImage" class="image-preview">
                     <label>صورة الفهرس</label><input type="text" id="categoryIndexImage">
-                    <input type="file" id="categoryIndexImageFile" accept="image/*">
+                    <input type="file" id="categoryIndexImageFile" accept="image/*" onchange="previewImage(this, 'previewIndexImage')">
+                    <img id="previewIndexImage" class="image-preview">
                     <label><input type="checkbox" id="categoryShowInIndex" checked> عرض في الفهرس</label>
                     <label>ترتيب الفهرس</label><input type="number" id="categoryIndexOrder" value="0">
                     <label>نص الإعلان للفئة</label><textarea id="categoryAdText"></textarea>
                     <label><input type="checkbox" id="categoryAdEnabled"> تفعيل الإعلان</label>
-                    <button id="addCategoryBtn"><i class="fas fa-plus-circle"></i> إضافة</button>
-                    <button id="updateCategoryBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث</button>
+                    <button id="addCategoryBtn">➕ إضافة</button>
+                    <button id="updateCategoryBtn" style="display:none;">تحديث</button>
                 </div>
                 <div class="admin-list" id="categoriesList"></div>
             </div>
 
             <!-- المتاجر -->
             <div class="admin-card">
-                <h2><i class="fas fa-store"></i> المتاجر</h2>
+                <h2>المتاجر</h2>
                 <div class="admin-form"><select id="storeCategorySelect"><option>اختر الفئة</option></select></div>
                 <div class="admin-form" id="storeForm">
                     <input type="hidden" id="editStoreId">
                     <input type="text" id="storeName" placeholder="اسم المتجر" required>
                     <label>الشعار</label><input type="text" id="storeLogo">
-                    <input type="file" id="storeLogoFile" accept="image/*">
+                    <input type="file" id="storeLogoFile" accept="image/*" onchange="previewImage(this, 'previewStoreLogo')">
+                    <img id="previewStoreLogo" class="image-preview">
                     <input type="url" id="storeExternalUrl" placeholder="الرابط الخارجي">
                     <input type="text" id="storeDescription" placeholder="الوصف">
                     <input type="text" id="storePhone" placeholder="الهاتف">
@@ -252,19 +283,17 @@
                         <option value="grid">شبكي</option>
                         <option value="list">قائمة</option>
                     </select>
-                    <label>عدد المنتجات في الشريط الواحد</label>
+                    <label>عدد المنتجات</label>
                     <input type="number" id="storeProductDisplayCount" value="10" min="1">
-                    <label>عدد الأشرطة الأفقية في صفحة المتجر</label>
-                    <input type="number" id="storeNumStrips" value="10" min="1">
-                    <button id="addStoreBtn"><i class="fas fa-plus-circle"></i> إضافة</button>
-                    <button id="updateStoreBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث</button>
+                    <button id="addStoreBtn">➕ إضافة</button>
+                    <button id="updateStoreBtn" style="display:none;">تحديث</button>
                 </div>
                 <div class="admin-list" id="storesList"></div>
             </div>
 
             <!-- المنتجات -->
             <div class="admin-card">
-                <h2><i class="fas fa-boxes"></i> المنتجات</h2>
+                <h2>المنتجات</h2>
                 <div class="admin-form">
                     <select id="productCategorySelect"><option>اختر الفئة</option></select>
                     <select id="productStoreSelect"><option>اختر المتجر</option></select>
@@ -276,33 +305,35 @@
                     <input type="number" id="productOldPrice" placeholder="السعر القديم" required>
                     <input type="number" id="productNewPrice" placeholder="السعر الجديد" required>
                     <label>الصورة</label><input type="text" id="productImage">
-                    <input type="file" id="productImageFile" accept="image/*">
+                    <input type="file" id="productImageFile" accept="image/*" onchange="previewImage(this, 'previewProduct')">
+                    <img id="previewProduct" class="image-preview">
                     <input type="url" id="productLink" placeholder="الرابط">
-                    <button id="addProductBtn"><i class="fas fa-plus-circle"></i> إضافة</button>
-                    <button id="updateProductBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث</button>
+                    <button id="addProductBtn">➕ إضافة</button>
+                    <button id="updateProductBtn" style="display:none;">تحديث</button>
                 </div>
                 <div class="admin-list" id="productsList"></div>
             </div>
 
             <!-- التقييمات -->
             <div class="admin-card">
-                <h2><i class="fas fa-star"></i> تقييمات العملاء</h2>
+                <h2>تقييمات العملاء</h2>
                 <div class="admin-form" id="testimonialForm">
                     <input type="hidden" id="editTestimonialIndex">
                     <input type="text" id="testimonialName" placeholder="الاسم" required>
                     <label>الصورة</label><input type="text" id="testimonialImage">
-                    <input type="file" id="testimonialImageFile" accept="image/*">
+                    <input type="file" id="testimonialImageFile" accept="image/*" onchange="previewImage(this, 'previewTestimonial')">
+                    <img id="previewTestimonial" class="image-preview">
                     <input type="number" id="testimonialRating" placeholder="التقييم (1-5)" min="1" max="5" required>
                     <textarea id="testimonialReview" placeholder="النص" required></textarea>
-                    <button id="addTestimonialBtn"><i class="fas fa-plus-circle"></i> إضافة</button>
-                    <button id="updateTestimonialBtn" style="display:none;"><i class="fas fa-edit"></i> تحديث</button>
+                    <button id="addTestimonialBtn">➕ إضافة</button>
+                    <button id="updateTestimonialBtn" style="display:none;">تحديث</button>
                 </div>
                 <div class="admin-list" id="testimonialsList"></div>
             </div>
 
             <!-- التذييل -->
             <div class="admin-card">
-                <h2><i class="fas fa-copyright"></i> التذييل</h2>
+                <h2>التذييل</h2>
                 <div class="admin-form">
                     <input type="email" id="footerEmail" placeholder="البريد الإلكتروني">
                     <input type="text" id="footerPhone" placeholder="الهاتف">
@@ -311,266 +342,62 @@
                     <textarea id="footerSocial" rows="3"></textarea>
                     <label>طرق الدفع (أيقونات)</label>
                     <input type="text" id="footerPayments" placeholder="fab fa-cc-visa, fab fa-cc-mastercard">
-                    <button id="saveFooterBtn"><i class="fas fa-save"></i> حفظ</button>
+                    <button id="saveFooterBtn">حفظ</button>
                 </div>
             </div>
 
             <!-- أذونات المتاجر -->
             <div class="admin-card">
-                <h2><i class="fas fa-key"></i> أذونات المتاجر</h2>
+                <h2>أذونات المتاجر</h2>
                 <div class="admin-form">
                     <select id="storePermissionSelect"><option>اختر الفئة</option></select>
                     <select id="storePermissionStoreSelect"><option>اختر المتجر</option></select>
                     <input type="text" id="storeOwnerCode" placeholder="الرمز السري للمالك">
                     <label><input type="checkbox" id="storeAllowUpload"> السماح برفع الشعار</label>
-                    <button id="saveStorePermissions"><i class="fas fa-save"></i> حفظ</button>
+                    <button id="saveStorePermissions">حفظ</button>
                 </div>
             </div>
 
             <!-- رسائل الاتصال -->
             <div class="admin-card">
-                <h2><i class="fas fa-envelope"></i> رسائل الاتصال</h2>
+                <h2>رسائل الاتصال</h2>
                 <div class="admin-list" id="messagesList"></div>
-            </div>
-
-            <!-- قسم الخدمات السحابية - موسع بـ 10 خوادم -->
-            <div class="admin-card cloud-config-section">
-                <h2><i class="fas fa-cloud-upload-alt"></i> ربط الخدمات السحابية</h2>
-                <div class="admin-form">
-                    <label>اختر الخدمة</label>
-                    <select id="cloudServiceSelect">
-                        <option value="">-- لا تستخدم خدمة سحابية --</option>
-                        <optgroup label="منصات معروفة">
-                            <option value="firebase">Firebase</option>
-                            <option value="supabase">Supabase</option>
-                            <option value="aws_dynamodb">AWS DynamoDB</option>
-                            <option value="gcp_firestore">Google Cloud Firestore</option>
-                            <option value="mongodb_atlas">MongoDB Atlas</option>
-                            <option value="back4app">Back4App</option>
-                            <option value="vercel">Vercel (JSON Store)</option>
-                            <option value="netlify">Netlify (JSON Store)</option>
-                            <option value="digitalocean">DigitalOcean Spaces</option>
-                            <option value="custom_rest">واجهة REST مخصصة</option>
-                        </optgroup>
-                    </select>
-                    <div id="cloudSettingsForm"></div>
-                    <button id="saveCloudConfigBtn"><i class="fas fa-save"></i> حفظ الإعدادات السحابية</button>
-                    <button id="testCloudConnectionBtn"><i class="fas fa-plug"></i> اختبار الاتصال</button>
-                    <p style="font-size:12px; margin-top:5px;">بعد حفظ الإعدادات، سيتم رفع جميع البيانات الحالية إلى السحابة وسيتم تفعيل الموقع تلقائياً.</p>
-                </div>
             </div>
         </div>
     </div>
 
+    <!-- زر المعاينة السريعة -->
     <button class="preview-btn" id="previewChangesBtn" style="display: none;">
         <i class="fas fa-eye"></i> معاينة التغييرات
     </button>
 
     <script>
-        // ================== الأمان والتشفير ==================
-        const ENCRYPTION_KEY = "S3cur3K3y2025!";
-        function encryptData(data) {
-            return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
-        }
-        function decryptData(encrypted) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_KEY);
-                return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-            } catch(e) { return null; }
-        }
+        // ================== إعدادات JSONBin ==================
+        const JSONBIN_ID = '69a64ee243b1c97be9adca6b';
+        const JSONBIN_API_KEY = '$2a$10$FS3i9r8N7hneHgTLZAk1/eRHR/RlHBBfv.G5NmyZNrLi70BtqfpiS';
+        const SECRET_CODE = "26272"; // الرمز السري الجديد
 
-        // ================== إعدادات الخدمات السحابية ==================
-        let externalServiceConfig = null;
-
-        function loadExternalServiceConfig() {
-            const encrypted = localStorage.getItem('cloud_config');
-            if (encrypted) {
-                const config = decryptData(encrypted);
-                if (config && config.enabled) {
-                    externalServiceConfig = config;
-                    return true;
-                }
-            }
-            externalServiceConfig = null;
-            return false;
-        }
-
-        function saveExternalServiceConfig(service, settings) {
-            const config = { enabled: true, service, settings };
-            localStorage.setItem('cloud_config', encryptData(config));
-            externalServiceConfig = config;
-        }
-
-        function clearExternalServiceConfig() {
-            localStorage.removeItem('cloud_config');
-            externalServiceConfig = null;
-        }
-
-        // دوال Firebase
-        let firebaseApp = null;
-        let firebaseDb = null;
-        async function initFirebase(settings) {
-            if (!window.firebase) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
-                    script.onload = () => {
-                        const dbScript = document.createElement('script');
-                        dbScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js';
-                        dbScript.onload = resolve;
-                        dbScript.onerror = reject;
-                        document.head.appendChild(dbScript);
-                    };
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-            if (!firebaseApp) {
-                const firebaseConfig = {
-                    apiKey: settings.apiKey,
-                    authDomain: settings.authDomain || `${settings.projectId}.firebaseapp.com`,
-                    projectId: settings.projectId,
-                    storageBucket: settings.storageBucket || `${settings.projectId}.appspot.com`,
-                    messagingSenderId: settings.messagingSenderId,
-                    appId: settings.appId,
-                    databaseURL: settings.databaseURL || `https://${settings.projectId}.firebaseio.com`
-                };
-                firebaseApp = firebase.initializeApp(firebaseConfig);
-                firebaseDb = firebase.database();
-            }
-            return firebaseDb;
-        }
-
-        async function saveToFirebase(data) {
-            const db = await initFirebase(externalServiceConfig.settings);
-            await db.ref('appData').set(data);
-            return true;
-        }
-
-        async function loadFromFirebase() {
-            const db = await initFirebase(externalServiceConfig.settings);
-            const snapshot = await db.ref('appData').once('value');
-            return snapshot.val();
-        }
-
-        // دوال Supabase
-        let supabaseClient = null;
-        async function initSupabase(settings) {
-            if (!window.supabase) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-            if (!supabaseClient) {
-                supabaseClient = window.supabase.createClient(settings.url, settings.anonKey);
-            }
-            return supabaseClient;
-        }
-
-        async function saveToSupabase(data) {
-            const client = await initSupabase(externalServiceConfig.settings);
-            const { error } = await client.from('app_data').upsert({ id: 1, data });
-            if (error) throw error;
-            return true;
-        }
-
-        async function loadFromSupabase() {
-            const client = await initSupabase(externalServiceConfig.settings);
-            const { data, error } = await client.from('app_data').select('data').eq('id', 1).single();
-            if (error) throw error;
-            return data.data;
-        }
-
-        // دوال عامة لـ REST API
-        async function saveToGenericREST(settings, data) {
-            const options = {
-                method: settings.method === 'POST' ? 'POST' : 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            };
-            if (settings.apiKey) {
-                options.headers['Authorization'] = settings.apiKey.startsWith('Bearer ') ? settings.apiKey : `Bearer ${settings.apiKey}`;
-            }
-            const response = await fetch(settings.url, options);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return true;
-        }
-
-        async function loadFromGenericREST(settings) {
-            const options = {
-                method: 'GET',
-                headers: {}
-            };
-            if (settings.apiKey) {
-                options.headers['Authorization'] = settings.apiKey.startsWith('Bearer ') ? settings.apiKey : `Bearer ${settings.apiKey}`;
-            }
-            const response = await fetch(settings.url, options);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        }
-
-        async function saveToExternalService(data) {
-            if (!externalServiceConfig) return false;
-            try {
-                switch(externalServiceConfig.service) {
-                    case 'firebase': return await saveToFirebase(data);
-                    case 'supabase':
-                    case 'supabase_db': return await saveToSupabase(data);
-                    case 'aws_dynamodb':
-                    case 'gcp_firestore':
-                    case 'mongodb_atlas':
-                    case 'back4app':
-                    case 'vercel':
-                    case 'netlify':
-                    case 'digitalocean':
-                    case 'custom_rest':
-                        return await saveToGenericREST(externalServiceConfig.settings, data);
-                    default: return false;
-                }
-            } catch(e) {
-                console.error('فشل الحفظ في الخدمة الخارجية', e);
-                return false;
-            }
-        }
-
-        async function loadFromExternalService() {
-            if (!externalServiceConfig) return null;
-            try {
-                switch(externalServiceConfig.service) {
-                    case 'firebase': return await loadFromFirebase();
-                    case 'supabase':
-                    case 'supabase_db': return await loadFromSupabase();
-                    case 'aws_dynamodb':
-                    case 'gcp_firestore':
-                    case 'mongodb_atlas':
-                    case 'back4app':
-                    case 'vercel':
-                    case 'netlify':
-                    case 'digitalocean':
-                    case 'custom_rest':
-                        return await loadFromGenericREST(externalServiceConfig.settings);
-                    default: return null;
-                }
-            } catch(e) {
-                console.error('فشل التحميل من الخدمة الخارجية', e);
-                return null;
-            }
-        }
-
-        // ================== قاعدة البيانات (مشتركة مع الموقع) ==================
-        const DB_NAME = 'marketsDB';
-        const STORE_NAME = 'appData';
-        const DB_VERSION = 1;
-
+        // ================== البيانات الافتراضية (نفس defaultData من index.html) ==================
         const defaultData = {
-            header: { title: "أسواق ريادة المستهلك", subtitle: "أفضل المتاجر والمنتجات بأفضل الأسعار", images: [] },
-            ticker: ["🔥 عروض حصرية تصل إلى 50% خصم", "💎 أشهر الماركات العالمية", "🚚 توصيل مجاني للطلبات فوق 200 ريال"],
+            header: {
+                title: "أسواق ريادة المستهلك",
+                subtitle: "أفضل المتاجر والمنتجات بأفضل الأسعار",
+                images: [
+                    'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1555529669-e69e7aa56ba9?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1441984904996-4e9c9484f3b6?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=600&fit=crop'
+                ]
+            },
+            ticker: [
+                "🔥 عروض حصرية تصل إلى 50% خصم",
+                "💎 أشهر الماركات العالمية",
+                "🚚 توصيل مجاني للطلبات فوق 200 ريال",
+                "🎁 هدايا مجانية مع كل طلب",
+                "💰 خصم خاص للعملاء الجدد 20%",
+                "⭐ تقييمات عملاء ممتازة"
+            ],
             carousel: [],
             design: {
                 categoryBg: "linear-gradient(145deg, #f9eef7, #f3d9e8)",
@@ -605,9 +432,10 @@
                 social: [
                     { icon: "fab fa-facebook-f", url: "https://facebook.com" },
                     { icon: "fab fa-twitter", url: "https://twitter.com" },
-                    { icon: "fab fa-instagram", url: "https://instagram.com" }
+                    { icon: "fab fa-instagram", url: "https://instagram.com" },
+                    { icon: "fab fa-whatsapp", url: "https://whatsapp.com" }
                 ],
-                payments: ["fab fa-cc-visa", "fab fa-cc-mastercard", "fab fa-cc-paypal"]
+                payments: ["fab fa-cc-visa", "fab fa-cc-mastercard", "fab fa-cc-paypal", "fab fa-cc-apple-pay", "fab fa-cc-stripe"]
             },
             settings: {
                 currency: "SAR",
@@ -616,31 +444,33 @@
                 cartEnabled: false,
                 enableUserProfile: true,
                 orderMethods: { whatsapp: true, email: true, chat: true },
-                trustBadges: [],
+                trustBadges: [
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Flag_of_Saudi_Arabia.svg/1200px-Flag_of_Saudi_Arabia.svg.png",
+                    "https://www.sfd.gov.sa/themes/custom/sfd/assets/images/logo.svg"
+                ],
                 contests: [],
                 contactEmail: "admin@example.com"
             },
-            messages: [],
-            indexes: {}
+            messages: []
         };
 
-        // بناء البيانات الافتراضية للمتاجر والمنتجات
-        function buildDefaultStoresAndProducts() {
+        // بناء المتاجر والمنتجات الافتراضية (نفس الطريقة)
+        (function buildDefaultStoresAndProducts() {
             const storeNamesByCategory = {
-                "العطور والبخور": ["ديوان العطور", "أريج الشرق", "العود الملكي"],
-                "الورد والهدايا": ["زهرة الحب", "هدايا وورود", "روز جاردن"],
-                "الإكسسوارات": ["إكسسوارات أنيقة", "لمسات فنية", "تألق"],
-                "الأزياء": ["موضة الشباب", "أزياء راقية", "أناقة"],
-                "الإلكترونيات": ["تك إلكترونيك", "ديجتال ستور", "سمارت وورلد"],
-                "الأدوات المنزلية": ["بيتي الجميل", "منزلي", "أواني العز"]
+                "العطور والبخور": ["ديوان العطور", "أريج الشرق", "العود الملكي", "مسك الليل", "نسمات العرب"],
+                "الورد والهدايا": ["زهرة الحب", "هدايا وورود", "روز جاردن", "قطاف الأزهار", "بوكيه"],
+                "الإكسسوارات": ["إكسسوارات أنيقة", "لمسات فنية", "تألق", "سوارة", "فخامة"],
+                "الأزياء": ["موضة الشباب", "أزياء راقية", "أناقة", "بيت الموضة", "القطعة الفريدة"],
+                "الإلكترونيات": ["تك إلكترونيك", "ديجتال ستور", "سمارت وورلد", "إكسترا تك", "جيكس"],
+                "الأدوات المنزلية": ["بيتي الجميل", "منزلي", "أواني العز", "ديكوري", "البيت المثالي"]
             };
             const productNamesByCategory = {
-                "العطور والبخور": ["عطر مسك أبيض", "دهن عود كمبودي", "بخور عود معمول"],
-                "الورد والهدايا": ["باقة ورد أحمر", "سلة هدايا فاخرة", "دبدوب مع ورد"],
-                "الإكسسوارات": ["ساعة رجالية فاخرة", "نظارة شمسية", "سوار من الجلد"],
-                "الأزياء": ["تيشيرت قطني", "جينز أزرق", "فستان سهرة"],
-                "الإلكترونيات": ["آيفون 15", "سامسونج S24", "لابتوب HP"],
-                "الأدوات المنزلية": ["طقم أواني طبخ", "خلاط كهربائي", "ميكروويف"]
+                "العطور والبخور": ["عطر مسك أبيض", "دهن عود كمبودي", "بخور عود معمول", "معطر جو فاخر", "عطر ورد دمشقي"],
+                "الورد والهدايا": ["باقة ورد أحمر", "سلة هدايا فاخرة", "دبدوب مع ورد", "شوكولاتة بلجيكية", "بطاقة معايدة"],
+                "الإكسسوارات": ["ساعة رجالية فاخرة", "نظارة شمسية", "سوار من الجلد", "قلادة فضية", "أقراط ذهبية"],
+                "الأزياء": ["تيشيرت قطني", "جينز أزرق", "فستان سهرة", "حذاء رياضي", "بدلة رسمية"],
+                "الإلكترونيات": ["آيفون 15", "سامسونج S24", "لابتوب HP", "سماعات بلوتوث", "ساعة ذكية"],
+                "الأدوات المنزلية": ["طقم أواني طبخ", "خلاط كهربائي", "ميكروويف", "مكنسة كهربائية", "غلاية ماء"]
             };
             const stores = {};
             const products = {};
@@ -663,15 +493,16 @@
                         ownerCode: "",
                         allowUpload: false,
                         productDisplayMode: "grid",
-                        productDisplayCount: 10,
-                        storeNumStrips: 10
+                        productDisplayCount: 10
                     };
                     stores[catName].push(store);
                     const productList = [];
-                    for (let i = 1; i <= 5; i++) {
+                    for (let i = 1; i <= 10; i++) {
                         const nameIndex = (i - 1) % productNamesByCategory[catName].length;
                         let productName = productNamesByCategory[catName][nameIndex];
-                        if (i > productNamesByCategory[catName].length) productName += ` ${Math.floor(i / productNamesByCategory[catName].length) + 1}`;
+                        if (i > productNamesByCategory[catName].length) {
+                            productName += ` ${Math.floor(i / productNamesByCategory[catName].length) + 1}`;
+                        }
                         const newPrice = Math.floor(Math.random() * 300) + 50;
                         const oldPrice = newPrice + Math.floor(Math.random() * 200) + 50;
                         const imageUrl = `https://source.unsplash.com/featured/300x300/?${encodeURIComponent(catName)},product&sig=${i}${s}`;
@@ -697,274 +528,97 @@
                     review: "تجربة رائعة مع هذا الموقع."
                 });
             }
-        }
-        buildDefaultStoresAndProducts();
+        })();
 
-        let appData = null;
-        let currentEditStoreId = null;
-        let currentEditProductStoreId = null;
-        let currentEditProductId = null;
-        let currentEditCarouselId = null;
-        let currentEditTestimonialIndex = null;
+        let appData = JSON.parse(localStorage.getItem('storeData')) || defaultData;
 
-        function sanitizeText(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
+        // ================== دوال مساعدة ==================
         function showToast(msg) {
             const toast = document.createElement('div');
             toast.className = 'toast-message';
-            toast.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            toast.textContent = msg;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
 
         function updateAutoSaveBadge() {
             const badge = document.getElementById('autoSaveBadge');
-            badge.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري الحفظ...';
+            badge.textContent = '✓ جاري الحفظ...';
             badge.style.background = '#f59e0b';
             setTimeout(() => {
-                badge.innerHTML = '<i class="fas fa-check-circle"></i> جميع التغييرات محفوظة';
+                badge.textContent = '✓ جميع التغييرات محفوظة';
                 badge.style.background = '#fbbf24';
             }, 500);
         }
 
-        // تهيئة قاعدة البيانات (محلية)
-        function initDB() {
-            return new Promise((resolve) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => {
-                    const stored = localStorage.getItem('marketsDB');
-                    if (stored) {
-                        appData = JSON.parse(stored);
-                    } else {
-                        appData = defaultData;
-                        localStorage.setItem('marketsDB', JSON.stringify(appData));
-                    }
-                    resolve();
-                };
-                request.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const transaction = db.transaction(STORE_NAME, 'readonly');
-                    const store = transaction.objectStore(STORE_NAME);
-                    const getRequest = store.get('main');
-                    getRequest.onsuccess = () => {
-                        if (getRequest.result) {
-                            appData = getRequest.result;
-                        } else {
-                            appData = defaultData;
-                            saveToDB();
-                        }
-                        resolve();
-                    };
-                };
-                request.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME);
-                    }
-                };
-            });
-        }
-
-        async function saveToDB() {
-            if (!appData) return;
-            // حفظ محلي
-            if (window.indexedDB) {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const transaction = db.transaction(STORE_NAME, 'readwrite');
-                    const store = transaction.objectStore(STORE_NAME);
-                    store.put(appData, 'main');
-                };
-            }
-            localStorage.setItem('marketsDB', JSON.stringify(appData));
+        function saveData() {
+            localStorage.setItem('storeData', JSON.stringify(appData));
+            localStorage.setItem('lastDataUpdate', Date.now().toString());
             updateAutoSaveBadge();
-
-            // حفظ في السحابة إذا كانت مفعّلة
-            if (externalServiceConfig) {
-                try {
-                    await saveToExternalService(appData);
-                } catch(e) {
-                    console.error('فشل الحفظ في السحابة', e);
-                    showToast('⚠️ فشل الحفظ في السحابة، سيتم الحفظ محلياً فقط');
-                }
-            }
-            // إخطار الموقع
-            if (window.broadcastChannel) {
-                window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            }
+            showToast('✅ تم الحفظ محلياً');
         }
 
-        // تحميل البيانات من السحابة عند بدء التشغيل
-        async function loadInitialData() {
-            if (loadExternalServiceConfig()) {
-                try {
-                    const cloudData = await loadFromExternalService();
-                    if (cloudData) {
-                        appData = cloudData;
-                        saveToDB(); // حفظ محلياً
-                        return;
-                    }
-                } catch(e) {
-                    console.warn('فشل تحميل البيانات من السحابة', e);
-                }
-            }
-            // إذا لم تكن السحابة مفعّلة أو فشلت، نستخدم المحلي
-            await initDB();
-        }
-
-        // دوال تحديث واجهة المستخدم
-        function refreshAllLists() {
-            populateCategoriesList();
-            populateStoresList(document.getElementById('storeCategorySelect').value);
-            populateProductsList();
-            populateCarouselList();
-            populateTestimonialsList();
-            populateContestsList();
-            populateTrustBadgesList();
-            populateMessagesList();
-            populateCategorySelects();
-            populateGeneralSettings();
-            populateDesignSettings();
-            populateHeaderSettings();
-            populateTickerSettings();
-            populateFooterSettings();
-            populateStorePermissions();
-        }
-
-        function populateCategorySelects() {
-            const selects = ['storeCategorySelect', 'productCategorySelect', 'storePermissionSelect'];
-            selects.forEach(selId => {
-                const select = document.getElementById(selId);
-                if (!select) return;
-                select.innerHTML = '<option>اختر الفئة</option>';
-                appData.categories.forEach(cat => {
-                    select.innerHTML += `<option value="${sanitizeText(cat.name)}">${sanitizeText(cat.name)}</option>`;
+        async function publishUpdates() {
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify(appData)
                 });
-            });
-        }
-
-        function populateCategoriesList() {
-            const container = document.getElementById('categoriesList');
-            if (!container) return;
-            container.innerHTML = '';
-            appData.categories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span><i class="${cat.icon}"></i> ${sanitizeText(cat.name)}</span><div><button class="edit" onclick="editCategory('${cat.id}')"><i class="fas fa-edit"></i> تعديل</button><button onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateStoresList(category) {
-            const container = document.getElementById('storesList');
-            if (!container || !category) return;
-            container.innerHTML = '';
-            const stores = appData.stores[category] || [];
-            stores.forEach(store => {
-                const div = document.createElement('div');
-                div.className = `admin-item ${store.hidden ? 'hidden-store' : ''}`;
-                div.innerHTML = `<span><img src="${store.logo}" alt="شعار ${store.name}" width="30" height="30" style="border-radius: 8px; margin-left: 8px;"> ${sanitizeText(store.name)}</span><div><button class="edit" onclick="editStore('${store.id}')"><i class="fas fa-edit"></i> تعديل</button><button class="toggle-hidden" onclick="toggleStoreHidden('${store.id}')">${store.hidden ? '<i class="fas fa-eye"></i> إظهار' : '<i class="fas fa-eye-slash"></i> إخفاء'}</button><button onclick="deleteStore('${store.id}')"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateProductsList() {
-            const container = document.getElementById('productsList');
-            if (!container) return;
-            container.innerHTML = '';
-            for (let storeId in appData.products) {
-                const store = findStoreById(storeId);
-                if (!store) continue;
-                const products = appData.products[storeId];
-                products.forEach(prod => {
-                    const div = document.createElement('div');
-                    div.className = 'admin-item';
-                    div.innerHTML = `<span><img src="${prod.image}" alt="${prod.name}" width="30" height="30" style="border-radius: 8px; margin-left: 8px;"> ${sanitizeText(prod.name)} (${sanitizeText(store.name)})</span><div><button class="edit" onclick="editProduct('${storeId}', ${prod.id})"><i class="fas fa-edit"></i> تعديل</button><button onclick="deleteProduct('${storeId}', ${prod.id})"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                    container.appendChild(div);
-                });
+                if (response.ok) {
+                    showToast('✅ تم نشر التحديثات عالمياً');
+                    localStorage.setItem('lastDataUpdate', Date.now().toString());
+                } else {
+                    showToast('❌ فشل النشر (تأكد من المفتاح)');
+                }
+            } catch (e) {
+                showToast('❌ خطأ في الاتصال بالخادم');
             }
         }
 
-        function populateCarouselList() {
-            const container = document.getElementById('carouselList');
-            if (!container) return;
-            container.innerHTML = '';
-            (appData.carousel || []).forEach(ad => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span><img src="${ad.image}" alt="${ad.name}" width="40" style="border-radius: 8px;"> ${sanitizeText(ad.name)}</span><div><button class="edit" onclick="editCarousel('${ad.id}')"><i class="fas fa-edit"></i> تعديل</button><button onclick="deleteCarousel('${ad.id}')"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
+        // ================== دوال معاينة الصور ==================
+        window.previewImage = function(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { preview.src = e.target.result; preview.classList.add('show'); };
+                reader.readAsDataURL(input.files[0]);
+            } else preview.classList.remove('show');
+        };
+
+        async function readFilesAsDataURL(files) {
+            return Promise.all(Array.from(files).map(file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            })));
         }
 
-        function populateTestimonialsList() {
-            const container = document.getElementById('testimonialsList');
-            if (!container) return;
-            container.innerHTML = '';
-            appData.testimonials.forEach((t, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span><img src="${t.image}" alt="${t.name}" width="30" height="30" style="border-radius: 50%; margin-left: 8px;"> ${sanitizeText(t.name)} (${t.rating}★)</span><div><button class="edit" onclick="editTestimonial(${idx})"><i class="fas fa-edit"></i> تعديل</button><button onclick="deleteTestimonial(${idx})"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateContestsList() {
-            const container = document.getElementById('contestsList');
-            if (!container) return;
-            container.innerHTML = '';
-            (appData.settings.contests || []).forEach((contest, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span>${sanitizeText(contest.name)}</span><div><button class="edit" onclick="editContest(${idx})"><i class="fas fa-edit"></i> تعديل</button><button onclick="deleteContest(${idx})"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateTrustBadgesList() {
-            const container = document.getElementById('trustBadgesList');
-            if (!container) return;
-            container.innerHTML = '';
-            (appData.settings.trustBadges || []).forEach((badge, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span><img src="${badge}" alt="شارة ثقة" style="height:40px; width:auto;"></span><div><button onclick="deleteTrustBadge(${idx})"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateMessagesList() {
-            const container = document.getElementById('messagesList');
-            if (!container) return;
-            container.innerHTML = '';
-            (appData.messages || []).forEach((msg, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<div><strong>${sanitizeText(msg.name)}</strong><br>${sanitizeText(msg.email)}<br>${sanitizeText(msg.subject)}<br>${sanitizeText(msg.message)}<br><small>${msg.date}</small></div><div><button onclick="deleteMessage(${idx})"><i class="fas fa-trash-alt"></i> حذف</button></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function populateGeneralSettings() {
-            document.getElementById('currencySelect').value = appData.settings.currency;
-            document.getElementById('languageSelect').value = appData.settings.language;
-            document.getElementById('showSaudiFlagCheckbox').checked = appData.settings.showSaudiFlag;
-            document.getElementById('cartEnabledCheckbox').checked = appData.settings.cartEnabled;
-            document.getElementById('enableUserProfileCheckbox').checked = appData.settings.enableUserProfile;
-            document.getElementById('orderWhatsappCheckbox').checked = appData.settings.orderMethods.whatsapp;
-            document.getElementById('orderEmailCheckbox').checked = appData.settings.orderMethods.email;
-            document.getElementById('orderChatCheckbox').checked = appData.settings.orderMethods.chat;
+        // ================== دوال التعبئة الأولية (populateForms) ==================
+        function populateForms() {
+            // الإعدادات العامة
+            document.getElementById('currencySelect').value = appData.settings.currency || 'SAR';
+            document.getElementById('languageSelect').value = appData.settings.language || 'ar';
+            document.getElementById('showSaudiFlagCheckbox').checked = appData.settings.showSaudiFlag || false;
+            document.getElementById('cartEnabledCheckbox').checked = appData.settings.cartEnabled || false;
+            document.getElementById('enableUserProfileCheckbox').checked = appData.settings.enableUserProfile || false;
+            document.getElementById('orderWhatsappCheckbox').checked = appData.settings.orderMethods?.whatsapp !== false;
+            document.getElementById('orderEmailCheckbox').checked = appData.settings.orderMethods?.email !== false;
+            document.getElementById('orderChatCheckbox').checked = appData.settings.orderMethods?.chat !== false;
             document.getElementById('contactEmail').value = appData.settings.contactEmail || '';
-            document.getElementById('trustBadgesInput').value = (appData.settings.trustBadges || []).join('\n');
-        }
 
-        function populateDesignSettings() {
+            // شارات الثقة
+            document.getElementById('trustBadgesInput').value = (appData.settings.trustBadges || []).join('\n');
+            renderTrustBadgesList();
+
+            // المسابقات
+            renderContestsList();
+
+            // إعدادات التصميم
             document.getElementById('categoryBg').value = appData.design.categoryBg;
             document.getElementById('categoryText').value = appData.design.categoryText;
             document.getElementById('categoryFontSize').value = appData.design.categoryFontSize;
@@ -978,50 +632,129 @@
             document.getElementById('adText').value = appData.design.adText;
             document.getElementById('adFontSize').value = appData.design.adFontSize;
             document.getElementById('generalFontSize').value = appData.design.generalFontSize;
-        }
 
-        function populateHeaderSettings() {
+            // الترويسة
             document.getElementById('headerTitleInput').value = appData.header.title;
             document.getElementById('headerSubtitleInput').value = appData.header.subtitle;
-            document.getElementById('headerImagesInput').value = (appData.header.images || []).join('\n');
-        }
+            document.getElementById('headerImagesInput').value = appData.header.images.join('\n');
+            document.getElementById('tickerTextsInput').value = appData.ticker.join(', ');
+            document.getElementById('footerWhatsapp').value = appData.footer.whatsapp;
 
-        function populateTickerSettings() {
-            document.getElementById('tickerTextsInput').value = (appData.ticker || []).join('\n');
-        }
+            // قوائم الفئات
+            const storeCatSelect = document.getElementById('storeCategorySelect');
+            const prodCatSelect = document.getElementById('productCategorySelect');
+            const permCatSelect = document.getElementById('storePermissionSelect');
+            storeCatSelect.innerHTML = '<option value="">اختر الفئة</option>';
+            prodCatSelect.innerHTML = '<option value="">اختر الفئة</option>';
+            permCatSelect.innerHTML = '<option value="">اختر الفئة</option>';
+            appData.categories.forEach(cat => {
+                storeCatSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                prodCatSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                permCatSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+            });
 
-        function populateFooterSettings() {
+            storeCatSelect.onchange = () => {
+                const cat = storeCatSelect.value;
+                const storesList = document.getElementById('storesList');
+                storesList.innerHTML = '';
+                if (cat && appData.stores[cat]) {
+                    appData.stores[cat].forEach(store => {
+                        const div = document.createElement('div');
+                        div.className = `admin-item ${store.hidden ? 'hidden-store' : ''}`;
+                        div.innerHTML = `<span>${store.name}</span><div><button class="edit" onclick="editStore('${store.id}')">تعديل</button><button class="toggle-hidden" onclick="toggleStoreHidden('${store.id}')">${store.hidden ? 'إظهار' : 'إخفاء'}</button><button onclick="deleteStore('${store.id}')">حذف</button></div>`;
+                        storesList.appendChild(div);
+                    });
+                }
+            };
+
+            prodCatSelect.onchange = () => {
+                const cat = prodCatSelect.value;
+                const storeSelect = document.getElementById('productStoreSelect');
+                storeSelect.innerHTML = '<option value="">اختر المتجر</option>';
+                if (cat && appData.stores[cat]) {
+                    appData.stores[cat].forEach(store => {
+                        storeSelect.innerHTML += `<option value="${store.id}">${store.name}</option>`;
+                    });
+                }
+            };
+
+            permCatSelect.onchange = () => {
+                const cat = permCatSelect.value;
+                const storeSelect = document.getElementById('storePermissionStoreSelect');
+                storeSelect.innerHTML = '<option value="">اختر المتجر</option>';
+                if (cat && appData.stores[cat]) {
+                    appData.stores[cat].forEach(store => {
+                        storeSelect.innerHTML += `<option value="${store.id}">${store.name}</option>`;
+                    });
+                }
+            };
+
+            document.getElementById('productStoreSelect').onchange = () => {
+                const storeId = document.getElementById('productStoreSelect').value;
+                const productsList = document.getElementById('productsList');
+                productsList.innerHTML = '';
+                if (storeId && appData.products[storeId]) {
+                    appData.products[storeId].forEach(prod => {
+                        const div = document.createElement('div');
+                        div.className = 'admin-item';
+                        div.innerHTML = `<span><img src="${prod.image}" style="width:30px; height:30px; border-radius:8px;"> ${prod.name}</span><div><button class="edit" onclick="editProduct('${storeId}', ${prod.id})">تعديل</button><button onclick="deleteProduct('${storeId}', ${prod.id})">حذف</button></div>`;
+                        productsList.appendChild(div);
+                    });
+                }
+            };
+
+            // قائمة الفئات
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = '';
+            appData.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `<span>${cat.name}</span><div><button class="edit" onclick="editCategory('${cat.id}')">تعديل</button><button onclick="deleteCategory('${cat.id}')">حذف</button></div>`;
+                categoriesList.appendChild(div);
+            });
+
+            // الإعلانات الدوارة
+            const carouselList = document.getElementById('carouselList');
+            carouselList.innerHTML = '';
+            (appData.carousel || []).forEach(ad => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `<span>${ad.name}</span><div><button class="edit" onclick="editCarousel('${ad.id}')">تعديل</button><button onclick="deleteCarousel('${ad.id}')">حذف</button></div>`;
+                carouselList.appendChild(div);
+            });
+
+            // التقييمات
+            const testimonialsList = document.getElementById('testimonialsList');
+            testimonialsList.innerHTML = '';
+            appData.testimonials.forEach((t, idx) => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `<span>${t.name}</span><div><button class="edit" onclick="editTestimonial(${idx})">تعديل</button><button onclick="deleteTestimonial(${idx})">حذف</button></div>`;
+                testimonialsList.appendChild(div);
+            });
+
+            // التذييل
             document.getElementById('footerEmail').value = appData.footer.email;
             document.getElementById('footerPhone').value = appData.footer.phone;
-            document.getElementById('footerWhatsapp').value = appData.footer.whatsapp;
-            const socialText = appData.footer.social.map(s => `${s.icon}:${s.url}`).join(', ');
-            document.getElementById('footerSocial').value = socialText;
-            document.getElementById('footerPayments').value = (appData.footer.payments || []).join(', ');
+            document.getElementById('footerSocial').value = appData.footer.social.map(s => `${s.icon}:${s.url}`).join(', ');
+            document.getElementById('footerPayments').value = appData.footer.payments.join(', ');
+
+            // الرسائل
+            renderMessagesList();
         }
 
-        function populateStorePermissions() {
-            const catSelect = document.getElementById('storePermissionSelect');
-            const storeSelect = document.getElementById('storePermissionStoreSelect');
-            if (!catSelect.value || catSelect.value === 'اختر الفئة') return;
-            const stores = appData.stores[catSelect.value] || [];
-            storeSelect.innerHTML = '<option>اختر المتجر</option>';
-            stores.forEach(store => {
-                storeSelect.innerHTML += `<option value="${store.id}">${store.name}</option>`;
-            });
-        }
+        // ================== دوال الحذف والإخفاء ==================
+        window.deleteCategory = (id) => { if(confirm('تأكيد الحذف؟')) { appData.categories = appData.categories.filter(c => c.id !== id); saveData(); populateForms(); } };
+        window.deleteStore = (id) => { if(confirm('تأكيد الحذف؟')) { for(let cat in appData.stores) { appData.stores[cat] = appData.stores[cat].filter(s => s.id !== id); } delete appData.products[id]; saveData(); populateForms(); } };
+        window.deleteProduct = (storeId, prodId) => { if(confirm('تأكيد الحذف؟')) { appData.products[storeId] = appData.products[storeId].filter(p => p.id !== prodId); saveData(); populateForms(); } };
+        window.deleteTestimonial = (idx) => { if(confirm('تأكيد الحذف؟')) { appData.testimonials.splice(idx, 1); saveData(); populateForms(); } };
+        window.deleteCarousel = (id) => { if(confirm('تأكيد الحذف؟')) { appData.carousel = appData.carousel.filter(c => c.id !== id); saveData(); populateForms(); } };
+        window.toggleStoreHidden = (id) => { for(let cat in appData.stores) { let store = appData.stores[cat].find(s => s.id === id); if(store) { store.hidden = !store.hidden; saveData(); populateForms(); break; } } };
 
-        function findStoreById(storeId) {
-            for (let cat in appData.stores) {
-                const store = appData.stores[cat].find(s => s.id === storeId);
-                if (store) return store;
-            }
-            return null;
-        }
-
-        // ================== دوال CRUD ==================
-        window.editCategory = function(id) {
+        // ================== دوال التعديل ==================
+        window.editCategory = (id) => {
             const cat = appData.categories.find(c => c.id === id);
-            if (!cat) return;
+            if(!cat) return;
             document.getElementById('editCategoryId').value = cat.id;
             document.getElementById('categoryName').value = cat.name;
             document.getElementById('categoryIcon').value = cat.icon;
@@ -1032,120 +765,46 @@
             document.getElementById('categoryShowInIndex').checked = cat.showInIndex;
             document.getElementById('categoryIndexOrder').value = cat.indexOrder || 0;
             document.getElementById('categoryAdText').value = cat.adText || '';
-            document.getElementById('categoryAdEnabled').checked = cat.adEnabled;
+            document.getElementById('categoryAdEnabled').checked = cat.adEnabled || false;
             document.getElementById('addCategoryBtn').style.display = 'none';
             document.getElementById('updateCategoryBtn').style.display = 'block';
         };
 
-        window.deleteCategory = function(id) {
-            if (confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
-                appData.categories = appData.categories.filter(c => c.id !== id);
-                const catName = appData.categories.find(c => c.id === id)?.name;
-                if (catName && appData.stores[catName]) {
-                    delete appData.stores[catName];
-                }
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف الفئة بنجاح');
-            }
-        };
-
-        window.editStore = function(storeId) {
-            const store = findStoreById(storeId);
-            if (!store) return;
-            currentEditStoreId = storeId;
+        window.editStore = (id) => {
+            let store = null;
+            for(let cat in appData.stores) { store = appData.stores[cat].find(s => s.id === id); if(store) break; }
+            if(!store) return;
+            document.getElementById('editStoreId').value = store.id;
             document.getElementById('storeName').value = store.name;
             document.getElementById('storeLogo').value = store.logo;
-            document.getElementById('storeExternalUrl').value = store.externalUrl;
+            document.getElementById('storeExternalUrl').value = store.externalUrl || '';
             document.getElementById('storeDescription').value = store.description || '';
             document.getElementById('storePhone').value = store.phone || '';
             document.getElementById('storeAddress').value = store.address || '';
             document.getElementById('storeHidden').checked = store.hidden;
             document.getElementById('storeProductDisplayMode').value = store.productDisplayMode || 'grid';
             document.getElementById('storeProductDisplayCount').value = store.productDisplayCount || 10;
-            document.getElementById('storeNumStrips').value = store.storeNumStrips || 10;
             document.getElementById('addStoreBtn').style.display = 'none';
             document.getElementById('updateStoreBtn').style.display = 'block';
         };
 
-        window.toggleStoreHidden = function(storeId) {
-            const store = findStoreById(storeId);
-            if (store) {
-                store.hidden = !store.hidden;
-                saveToDB();
-                refreshAllLists();
-                showToast(store.hidden ? 'تم إخفاء المتجر' : 'تم إظهار المتجر');
-            }
-        };
-
-        window.deleteStore = function(storeId) {
-            if (confirm('هل أنت متأكد من حذف هذا المتجر؟')) {
-                for (let cat in appData.stores) {
-                    const index = appData.stores[cat].findIndex(s => s.id === storeId);
-                    if (index !== -1) {
-                        appData.stores[cat].splice(index, 1);
-                        delete appData.products[storeId];
-                        saveToDB();
-                        refreshAllLists();
-                        showToast('تم حذف المتجر');
-                        break;
-                    }
-                }
-            }
-        };
-
-        window.editProduct = function(storeId, productId) {
-            currentEditProductStoreId = storeId;
-            currentEditProductId = productId;
-            const product = appData.products[storeId].find(p => p.id == productId);
-            if (!product) return;
-            document.getElementById('productName').value = product.name;
-            document.getElementById('productOldPrice').value = product.oldPrice;
-            document.getElementById('productNewPrice').value = product.newPrice;
-            document.getElementById('productImage').value = product.image;
-            document.getElementById('productLink').value = product.link;
+        window.editProduct = (storeId, prodId) => {
+            const prod = appData.products[storeId]?.find(p => p.id === prodId);
+            if(!prod) return;
+            document.getElementById('editProductStoreId').value = storeId;
+            document.getElementById('editProductId').value = prodId;
+            document.getElementById('productName').value = prod.name;
+            document.getElementById('productOldPrice').value = prod.oldPrice;
+            document.getElementById('productNewPrice').value = prod.newPrice;
+            document.getElementById('productImage').value = prod.image;
+            document.getElementById('productLink').value = prod.link || '';
             document.getElementById('addProductBtn').style.display = 'none';
             document.getElementById('updateProductBtn').style.display = 'block';
         };
 
-        window.deleteProduct = function(storeId, productId) {
-            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-                const index = appData.products[storeId].findIndex(p => p.id == productId);
-                if (index !== -1) {
-                    appData.products[storeId].splice(index, 1);
-                    saveToDB();
-                    refreshAllLists();
-                    showToast('تم حذف المنتج');
-                }
-            }
-        };
-
-        window.editCarousel = function(adId) {
-            const ad = appData.carousel.find(a => a.id === adId);
-            if (!ad) return;
-            currentEditCarouselId = adId;
-            document.getElementById('carouselName').value = ad.name;
-            document.getElementById('carouselLink').value = ad.link;
-            document.getElementById('carouselImage').value = ad.image;
-            document.getElementById('carouselOrder').value = ad.order;
-            document.getElementById('carouselActive').checked = ad.active;
-            document.getElementById('addCarouselBtn').style.display = 'none';
-            document.getElementById('updateCarouselBtn').style.display = 'block';
-        };
-
-        window.deleteCarousel = function(adId) {
-            if (confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
-                appData.carousel = appData.carousel.filter(a => a.id !== adId);
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف الإعلان');
-            }
-        };
-
-        window.editTestimonial = function(index) {
-            const t = appData.testimonials[index];
-            if (!t) return;
-            currentEditTestimonialIndex = index;
+        window.editTestimonial = (idx) => {
+            const t = appData.testimonials[idx];
+            document.getElementById('editTestimonialIndex').value = idx;
             document.getElementById('testimonialName').value = t.name;
             document.getElementById('testimonialImage').value = t.image;
             document.getElementById('testimonialRating').value = t.rating;
@@ -1154,345 +813,21 @@
             document.getElementById('updateTestimonialBtn').style.display = 'block';
         };
 
-        window.deleteTestimonial = function(index) {
-            if (confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
-                appData.testimonials.splice(index, 1);
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف التقييم');
-            }
+        window.editCarousel = (id) => {
+            const ad = appData.carousel.find(c => c.id === id);
+            if (!ad) return;
+            document.getElementById('editCarouselId').value = ad.id;
+            document.getElementById('carouselName').value = ad.name;
+            document.getElementById('carouselLink').value = ad.link || '';
+            document.getElementById('carouselImage').value = ad.image;
+            document.getElementById('carouselOrder').value = ad.order || 0;
+            document.getElementById('carouselActive').checked = ad.active;
+            document.getElementById('previewCarousel').src = ad.image; document.getElementById('previewCarousel').classList.add('show');
+            document.getElementById('addCarouselBtn').style.display = 'none';
+            document.getElementById('updateCarouselBtn').style.display = 'block';
         };
 
-        window.editContest = function(index) {
-            const contest = appData.settings.contests[index];
-            if (!contest) return;
-            document.getElementById('editContestId').value = index;
-            document.getElementById('contestName').value = contest.name;
-            document.getElementById('contestDescription').value = contest.description;
-            document.getElementById('contestEndDate').value = contest.endDate;
-            document.getElementById('addContestBtn').style.display = 'none';
-            document.getElementById('updateContestBtn').style.display = 'block';
-        };
-
-        window.deleteContest = function(index) {
-            if (confirm('هل أنت متأكد من حذف هذه المسابقة؟')) {
-                appData.settings.contests.splice(index, 1);
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف المسابقة');
-            }
-        };
-
-        window.deleteTrustBadge = function(index) {
-            if (confirm('هل أنت متأكد من حذف هذه الشارة؟')) {
-                appData.settings.trustBadges.splice(index, 1);
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف الشارة');
-            }
-        };
-
-        window.deleteMessage = function(index) {
-            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
-                appData.messages.splice(index, 1);
-                saveToDB();
-                refreshAllLists();
-                showToast('تم حذف الرسالة');
-            }
-        };
-
-        // ================== أحداث الأزرار ==================
-        document.getElementById('addCategoryBtn').addEventListener('click', () => {
-            const name = document.getElementById('categoryName').value;
-            if (!name) return alert('اسم الفئة مطلوب');
-            const newCat = {
-                id: 'cat' + Date.now(),
-                name: name,
-                icon: document.getElementById('categoryIcon').value || 'fas fa-tag',
-                slug: document.getElementById('categorySlug').value || name.replace(/\s/g, '-').toLowerCase(),
-                color: document.getElementById('categoryColor').value,
-                featuredImage: document.getElementById('categoryFeaturedImage').value || 'https://via.placeholder.com/400x300',
-                indexImage: document.getElementById('categoryIndexImage').value || 'https://via.placeholder.com/600x400',
-                showInIndex: document.getElementById('categoryShowInIndex').checked,
-                indexOrder: parseInt(document.getElementById('categoryIndexOrder').value) || 0,
-                adText: document.getElementById('categoryAdText').value,
-                adEnabled: document.getElementById('categoryAdEnabled').checked
-            };
-            appData.categories.push(newCat);
-            if (!appData.stores[newCat.name]) appData.stores[newCat.name] = [];
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('categoryForm').reset();
-            document.getElementById('addCategoryBtn').style.display = 'block';
-            document.getElementById('updateCategoryBtn').style.display = 'none';
-            showToast('تم إضافة الفئة');
-        });
-
-        document.getElementById('updateCategoryBtn').addEventListener('click', () => {
-            const id = document.getElementById('editCategoryId').value;
-            const catIndex = appData.categories.findIndex(c => c.id === id);
-            if (catIndex === -1) return;
-            const oldName = appData.categories[catIndex].name;
-            const newName = document.getElementById('categoryName').value;
-            appData.categories[catIndex] = {
-                ...appData.categories[catIndex],
-                name: newName,
-                icon: document.getElementById('categoryIcon').value,
-                slug: document.getElementById('categorySlug').value,
-                color: document.getElementById('categoryColor').value,
-                featuredImage: document.getElementById('categoryFeaturedImage').value,
-                indexImage: document.getElementById('categoryIndexImage').value,
-                showInIndex: document.getElementById('categoryShowInIndex').checked,
-                indexOrder: parseInt(document.getElementById('categoryIndexOrder').value),
-                adText: document.getElementById('categoryAdText').value,
-                adEnabled: document.getElementById('categoryAdEnabled').checked
-            };
-            if (oldName !== newName && appData.stores[oldName]) {
-                appData.stores[newName] = appData.stores[oldName];
-                delete appData.stores[oldName];
-            }
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('categoryForm').reset();
-            document.getElementById('addCategoryBtn').style.display = 'block';
-            document.getElementById('updateCategoryBtn').style.display = 'none';
-            showToast('تم تحديث الفئة');
-        });
-
-        document.getElementById('addStoreBtn').addEventListener('click', () => {
-            const category = document.getElementById('storeCategorySelect').value;
-            if (!category || category === 'اختر الفئة') return alert('اختر الفئة أولاً');
-            const name = document.getElementById('storeName').value;
-            if (!name) return alert('اسم المتجر مطلوب');
-            const newId = 'store-' + Date.now();
-            const newStore = {
-                id: newId,
-                name: name,
-                category: category,
-                logo: document.getElementById('storeLogo').value || 'https://via.placeholder.com/100',
-                externalUrl: document.getElementById('storeExternalUrl').value || '#',
-                hidden: document.getElementById('storeHidden').checked,
-                description: document.getElementById('storeDescription').value,
-                phone: document.getElementById('storePhone').value,
-                address: document.getElementById('storeAddress').value,
-                ownerCode: '',
-                allowUpload: false,
-                productDisplayMode: document.getElementById('storeProductDisplayMode').value,
-                productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value),
-                storeNumStrips: parseInt(document.getElementById('storeNumStrips').value) || 10
-            };
-            if (!appData.stores[category]) appData.stores[category] = [];
-            appData.stores[category].push(newStore);
-            appData.products[newId] = [];
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('storeForm').reset();
-            document.getElementById('addStoreBtn').style.display = 'block';
-            document.getElementById('updateStoreBtn').style.display = 'none';
-            showToast('تم إضافة المتجر');
-        });
-
-        document.getElementById('updateStoreBtn').addEventListener('click', () => {
-            if (!currentEditStoreId) return;
-            const store = findStoreById(currentEditStoreId);
-            if (!store) return;
-            store.name = document.getElementById('storeName').value;
-            store.logo = document.getElementById('storeLogo').value;
-            store.externalUrl = document.getElementById('storeExternalUrl').value;
-            store.description = document.getElementById('storeDescription').value;
-            store.phone = document.getElementById('storePhone').value;
-            store.address = document.getElementById('storeAddress').value;
-            store.hidden = document.getElementById('storeHidden').checked;
-            store.productDisplayMode = document.getElementById('storeProductDisplayMode').value;
-            store.productDisplayCount = parseInt(document.getElementById('storeProductDisplayCount').value);
-            store.storeNumStrips = parseInt(document.getElementById('storeNumStrips').value) || 10;
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('storeForm').reset();
-            document.getElementById('addStoreBtn').style.display = 'block';
-            document.getElementById('updateStoreBtn').style.display = 'none';
-            currentEditStoreId = null;
-            showToast('تم تحديث المتجر');
-        });
-
-        document.getElementById('addProductBtn').addEventListener('click', () => {
-            const storeId = document.getElementById('productStoreSelect').value;
-            if (!storeId || storeId === 'اختر المتجر') return alert('اختر المتجر أولاً');
-            const name = document.getElementById('productName').value;
-            if (!name) return alert('اسم المنتج مطلوب');
-            const newId = Date.now();
-            const newProduct = {
-                id: newId,
-                name: name,
-                oldPrice: parseFloat(document.getElementById('productOldPrice').value),
-                newPrice: parseFloat(document.getElementById('productNewPrice').value),
-                image: document.getElementById('productImage').value || 'https://via.placeholder.com/300',
-                link: document.getElementById('productLink').value || '#'
-            };
-            if (!appData.products[storeId]) appData.products[storeId] = [];
-            appData.products[storeId].push(newProduct);
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('productForm').reset();
-            document.getElementById('addProductBtn').style.display = 'block';
-            document.getElementById('updateProductBtn').style.display = 'none';
-            showToast('تم إضافة المنتج');
-        });
-
-        document.getElementById('updateProductBtn').addEventListener('click', () => {
-            if (!currentEditProductStoreId || !currentEditProductId) return;
-            const product = appData.products[currentEditProductStoreId].find(p => p.id == currentEditProductId);
-            if (!product) return;
-            product.name = document.getElementById('productName').value;
-            product.oldPrice = parseFloat(document.getElementById('productOldPrice').value);
-            product.newPrice = parseFloat(document.getElementById('productNewPrice').value);
-            product.image = document.getElementById('productImage').value;
-            product.link = document.getElementById('productLink').value;
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('productForm').reset();
-            document.getElementById('addProductBtn').style.display = 'block';
-            document.getElementById('updateProductBtn').style.display = 'none';
-            currentEditProductStoreId = null;
-            currentEditProductId = null;
-            showToast('تم تحديث المنتج');
-        });
-
-        document.getElementById('addCarouselBtn').addEventListener('click', () => {
-            const name = document.getElementById('carouselName').value;
-            if (!name) return alert('اسم الإعلان مطلوب');
-            const newAd = {
-                id: 'carousel-' + Date.now(),
-                name: name,
-                link: document.getElementById('carouselLink').value,
-                image: document.getElementById('carouselImage').value,
-                order: parseInt(document.getElementById('carouselOrder').value) || 0,
-                active: document.getElementById('carouselActive').checked
-            };
-            if (!appData.carousel) appData.carousel = [];
-            appData.carousel.push(newAd);
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('carouselForm').reset();
-            document.getElementById('addCarouselBtn').style.display = 'block';
-            document.getElementById('updateCarouselBtn').style.display = 'none';
-            showToast('تم إضافة الإعلان');
-        });
-
-        document.getElementById('updateCarouselBtn').addEventListener('click', () => {
-            if (!currentEditCarouselId) return;
-            const index = appData.carousel.findIndex(a => a.id === currentEditCarouselId);
-            if (index === -1) return;
-            appData.carousel[index] = {
-                ...appData.carousel[index],
-                name: document.getElementById('carouselName').value,
-                link: document.getElementById('carouselLink').value,
-                image: document.getElementById('carouselImage').value,
-                order: parseInt(document.getElementById('carouselOrder').value),
-                active: document.getElementById('carouselActive').checked
-            };
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('carouselForm').reset();
-            document.getElementById('addCarouselBtn').style.display = 'block';
-            document.getElementById('updateCarouselBtn').style.display = 'none';
-            currentEditCarouselId = null;
-            showToast('تم تحديث الإعلان');
-        });
-
-        document.getElementById('addTestimonialBtn').addEventListener('click', () => {
-            const name = document.getElementById('testimonialName').value;
-            if (!name) return alert('الاسم مطلوب');
-            const newTestimonial = {
-                name: name,
-                image: document.getElementById('testimonialImage').value || 'https://via.placeholder.com/100',
-                rating: parseInt(document.getElementById('testimonialRating').value) || 5,
-                review: document.getElementById('testimonialReview').value
-            };
-            appData.testimonials.push(newTestimonial);
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('testimonialForm').reset();
-            document.getElementById('addTestimonialBtn').style.display = 'block';
-            document.getElementById('updateTestimonialBtn').style.display = 'none';
-            showToast('تم إضافة التقييم');
-        });
-
-        document.getElementById('updateTestimonialBtn').addEventListener('click', () => {
-            if (currentEditTestimonialIndex === null) return;
-            appData.testimonials[currentEditTestimonialIndex] = {
-                name: document.getElementById('testimonialName').value,
-                image: document.getElementById('testimonialImage').value,
-                rating: parseInt(document.getElementById('testimonialRating').value),
-                review: document.getElementById('testimonialReview').value
-            };
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('testimonialForm').reset();
-            document.getElementById('addTestimonialBtn').style.display = 'block';
-            document.getElementById('updateTestimonialBtn').style.display = 'none';
-            currentEditTestimonialIndex = null;
-            showToast('تم تحديث التقييم');
-        });
-
-        document.getElementById('addContestBtn').addEventListener('click', () => {
-            const name = document.getElementById('contestName').value;
-            if (!name) return alert('اسم المسابقة مطلوب');
-            const newContest = {
-                name: name,
-                description: document.getElementById('contestDescription').value,
-                endDate: document.getElementById('contestEndDate').value
-            };
-            if (!appData.settings.contests) appData.settings.contests = [];
-            appData.settings.contests.push(newContest);
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('contestForm').reset();
-            document.getElementById('addContestBtn').style.display = 'block';
-            document.getElementById('updateContestBtn').style.display = 'none';
-            showToast('تم إضافة المسابقة');
-        });
-
-        document.getElementById('updateContestBtn').addEventListener('click', () => {
-            const index = document.getElementById('editContestId').value;
-            if (index === '') return;
-            appData.settings.contests[index] = {
-                name: document.getElementById('contestName').value,
-                description: document.getElementById('contestDescription').value,
-                endDate: document.getElementById('contestEndDate').value
-            };
-            saveToDB();
-            refreshAllLists();
-            document.getElementById('contestForm').reset();
-            document.getElementById('addContestBtn').style.display = 'block';
-            document.getElementById('updateContestBtn').style.display = 'none';
-            showToast('تم تحديث المسابقة');
-        });
-
-        document.getElementById('saveGeneralSettings').addEventListener('click', () => {
-            appData.settings.currency = document.getElementById('currencySelect').value;
-            appData.settings.language = document.getElementById('languageSelect').value;
-            appData.settings.showSaudiFlag = document.getElementById('showSaudiFlagCheckbox').checked;
-            appData.settings.cartEnabled = document.getElementById('cartEnabledCheckbox').checked;
-            appData.settings.enableUserProfile = document.getElementById('enableUserProfileCheckbox').checked;
-            appData.settings.orderMethods = {
-                whatsapp: document.getElementById('orderWhatsappCheckbox').checked,
-                email: document.getElementById('orderEmailCheckbox').checked,
-                chat: document.getElementById('orderChatCheckbox').checked
-            };
-            appData.settings.contactEmail = document.getElementById('contactEmail').value;
-            saveToDB();
-            showToast('تم حفظ الإعدادات العامة');
-        });
-
-        document.getElementById('saveTrustBadges').addEventListener('click', () => {
-            const badges = document.getElementById('trustBadgesInput').value.split('\n').filter(b => b.trim());
-            appData.settings.trustBadges = badges;
-            saveToDB();
-            refreshAllLists();
-            showToast('تم حفظ شارات الثقة');
-        });
-
+        // ================== أحداث الحفظ ==================
         document.getElementById('saveDesignSettings').addEventListener('click', () => {
             appData.design = {
                 categoryBg: document.getElementById('categoryBg').value,
@@ -1509,444 +844,468 @@
                 adFontSize: document.getElementById('adFontSize').value,
                 generalFontSize: document.getElementById('generalFontSize').value
             };
-            saveToDB();
-            showToast('تم حفظ إعدادات التصميم');
+            saveData();
         });
 
-        document.getElementById('saveHeaderBtn').addEventListener('click', () => {
+        document.getElementById('saveHeaderBtn').addEventListener('click', async () => {
+            const textUrls = document.getElementById('headerImagesInput').value.split('\n').map(s => s.trim()).filter(s => s);
+            const fileInput = document.getElementById('headerImagesFile');
+            let fileUrls = [];
+            if (fileInput.files.length) fileUrls = await readFilesAsDataURL(fileInput.files);
             appData.header.title = document.getElementById('headerTitleInput').value;
             appData.header.subtitle = document.getElementById('headerSubtitleInput').value;
-            const images = document.getElementById('headerImagesInput').value.split('\n').filter(img => img.trim());
-            appData.header.images = images;
-            saveToDB();
-            showToast('تم حفظ إعدادات الترويسة');
+            appData.header.images = [...textUrls, ...fileUrls];
+            saveData();
         });
 
         document.getElementById('saveTickerBtn').addEventListener('click', () => {
-            const tickerTexts = document.getElementById('tickerTextsInput').value.split('\n').filter(t => t.trim());
-            appData.ticker = tickerTexts;
-            saveToDB();
-            showToast('تم حفظ شريط الإعلانات');
+            appData.ticker = document.getElementById('tickerTextsInput').value.split(',').map(s => s.trim());
+            saveData();
         });
 
         document.getElementById('saveFooterBtn').addEventListener('click', () => {
             appData.footer.email = document.getElementById('footerEmail').value;
             appData.footer.phone = document.getElementById('footerPhone').value;
             appData.footer.whatsapp = document.getElementById('footerWhatsapp').value;
-            const socialText = document.getElementById('footerSocial').value;
-            const socialItems = socialText.split(',').map(s => s.trim()).filter(s => s);
-            appData.footer.social = socialItems.map(s => {
-                const [icon, url] = s.split(':');
-                return { icon: icon.trim(), url: url.trim() };
-            });
-            const paymentsText = document.getElementById('footerPayments').value;
-            appData.footer.payments = paymentsText.split(',').map(p => p.trim()).filter(p => p);
-            saveToDB();
-            showToast('تم حفظ التذييل');
+            const socialStr = document.getElementById('footerSocial').value;
+            appData.footer.social = socialStr.split(',').map(s => {
+                const parts = s.trim().split(':');
+                return { icon: parts[0]?.trim() || '', url: parts[1]?.trim() || '#' };
+            }).filter(s => s.icon);
+            appData.footer.payments = document.getElementById('footerPayments').value.split(',').map(p => p.trim()).filter(p => p);
+            saveData();
         });
 
+        // إضافة/تحديث الفئات
+        document.getElementById('addCategoryBtn').addEventListener('click', async () => {
+            if(!document.getElementById('categoryName').value) return alert('اسم الفئة مطلوب');
+            let featured = document.getElementById('categoryFeaturedImage').value;
+            let index = document.getElementById('categoryIndexImage').value;
+            if(document.getElementById('categoryFeaturedImageFile').files[0]) featured = (await readFilesAsDataURL([document.getElementById('categoryFeaturedImageFile').files[0]]))[0];
+            if(document.getElementById('categoryIndexImageFile').files[0]) index = (await readFilesAsDataURL([document.getElementById('categoryIndexImageFile').files[0]]))[0];
+            const newCat = {
+                id: 'cat' + Date.now(),
+                name: document.getElementById('categoryName').value,
+                icon: document.getElementById('categoryIcon').value,
+                slug: document.getElementById('categorySlug').value,
+                color: document.getElementById('categoryColor').value,
+                featuredImage: featured || 'https://via.placeholder.com/400x300',
+                indexImage: index || 'https://via.placeholder.com/600x400',
+                showInIndex: document.getElementById('categoryShowInIndex').checked,
+                indexOrder: parseInt(document.getElementById('categoryIndexOrder').value) || 0,
+                adText: document.getElementById('categoryAdText').value,
+                adEnabled: document.getElementById('categoryAdEnabled').checked
+            };
+            appData.categories.push(newCat);
+            appData.stores[newCat.name] = [];
+            saveData();
+            populateForms();
+            document.getElementById('categoryForm').reset();
+        });
+
+        document.getElementById('updateCategoryBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editCategoryId').value;
+            const cat = appData.categories.find(c => c.id === id);
+            if(!cat) return;
+            let featured = document.getElementById('categoryFeaturedImage').value;
+            let index = document.getElementById('categoryIndexImage').value;
+            if(document.getElementById('categoryFeaturedImageFile').files[0]) featured = (await readFilesAsDataURL([document.getElementById('categoryFeaturedImageFile').files[0]]))[0];
+            if(document.getElementById('categoryIndexImageFile').files[0]) index = (await readFilesAsDataURL([document.getElementById('categoryIndexImageFile').files[0]]))[0];
+            const oldName = cat.name;
+            cat.name = document.getElementById('categoryName').value;
+            cat.icon = document.getElementById('categoryIcon').value;
+            cat.slug = document.getElementById('categorySlug').value;
+            cat.color = document.getElementById('categoryColor').value;
+            if(featured) cat.featuredImage = featured;
+            if(index) cat.indexImage = index;
+            cat.showInIndex = document.getElementById('categoryShowInIndex').checked;
+            cat.indexOrder = parseInt(document.getElementById('categoryIndexOrder').value) || 0;
+            cat.adText = document.getElementById('categoryAdText').value;
+            cat.adEnabled = document.getElementById('categoryAdEnabled').checked;
+            if(oldName !== cat.name) {
+                appData.stores[cat.name] = appData.stores[oldName] || [];
+                delete appData.stores[oldName];
+                if(appData.stores[cat.name]) appData.stores[cat.name].forEach(s => s.category = cat.name);
+            }
+            saveData();
+            populateForms();
+            document.getElementById('addCategoryBtn').style.display = 'block';
+            document.getElementById('updateCategoryBtn').style.display = 'none';
+            document.getElementById('categoryForm').reset();
+        });
+
+        // المتاجر
+        document.getElementById('addStoreBtn').addEventListener('click', async () => {
+            const cat = document.getElementById('storeCategorySelect').value;
+            if(!cat) return alert('اختر فئة');
+            let logo = document.getElementById('storeLogo').value;
+            if(document.getElementById('storeLogoFile').files[0]) logo = (await readFilesAsDataURL([document.getElementById('storeLogoFile').files[0]]))[0];
+            const newStore = {
+                id: 'store' + Date.now(),
+                name: document.getElementById('storeName').value,
+                category: cat,
+                logo: logo || 'https://via.placeholder.com/100x100',
+                externalUrl: document.getElementById('storeExternalUrl').value,
+                description: document.getElementById('storeDescription').value,
+                phone: document.getElementById('storePhone').value,
+                address: document.getElementById('storeAddress').value,
+                hidden: document.getElementById('storeHidden').checked,
+                ownerCode: "",
+                allowUpload: false,
+                productDisplayMode: document.getElementById('storeProductDisplayMode').value,
+                productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value) || 10
+            };
+            if(!appData.stores[cat]) appData.stores[cat] = [];
+            appData.stores[cat].push(newStore);
+            appData.products[newStore.id] = [];
+            saveData();
+            populateForms();
+            document.getElementById('storeForm').reset();
+        });
+
+        document.getElementById('updateStoreBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editStoreId').value;
+            let store = null, oldCat = null;
+            for(let cat in appData.stores) {
+                store = appData.stores[cat].find(s => s.id === id);
+                if(store) { oldCat = cat; break; }
+            }
+            if(!store) return;
+            let logo = document.getElementById('storeLogo').value;
+            if(document.getElementById('storeLogoFile').files[0]) logo = (await readFilesAsDataURL([document.getElementById('storeLogoFile').files[0]]))[0];
+            store.name = document.getElementById('storeName').value;
+            if(logo) store.logo = logo;
+            store.externalUrl = document.getElementById('storeExternalUrl').value;
+            store.description = document.getElementById('storeDescription').value;
+            store.phone = document.getElementById('storePhone').value;
+            store.address = document.getElementById('storeAddress').value;
+            store.hidden = document.getElementById('storeHidden').checked;
+            store.productDisplayMode = document.getElementById('storeProductDisplayMode').value;
+            store.productDisplayCount = parseInt(document.getElementById('storeProductDisplayCount').value) || 10;
+            const newCat = document.getElementById('storeCategorySelect').value;
+            if(newCat && newCat !== oldCat) {
+                appData.stores[oldCat] = appData.stores[oldCat].filter(s => s.id !== id);
+                if(!appData.stores[newCat]) appData.stores[newCat] = [];
+                store.category = newCat;
+                appData.stores[newCat].push(store);
+            }
+            saveData();
+            populateForms();
+            document.getElementById('addStoreBtn').style.display = 'block';
+            document.getElementById('updateStoreBtn').style.display = 'none';
+            document.getElementById('storeForm').reset();
+        });
+
+        // المنتجات
+        document.getElementById('addProductBtn').addEventListener('click', async () => {
+            const storeId = document.getElementById('productStoreSelect').value;
+            if(!storeId) return alert('اختر متجر');
+            let image = document.getElementById('productImage').value;
+            if(document.getElementById('productImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('productImageFile').files[0]]))[0];
+            const products = appData.products[storeId] || [];
+            const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
+            const newProd = {
+                id: maxId + 1,
+                name: document.getElementById('productName').value,
+                oldPrice: parseInt(document.getElementById('productOldPrice').value),
+                newPrice: parseInt(document.getElementById('productNewPrice').value),
+                image: image || 'https://via.placeholder.com/300x300',
+                link: document.getElementById('productLink').value || '#'
+            };
+            if(!appData.products[storeId]) appData.products[storeId] = [];
+            appData.products[storeId].push(newProd);
+            saveData();
+            populateForms();
+            document.getElementById('productForm').reset();
+        });
+
+        document.getElementById('updateProductBtn').addEventListener('click', async () => {
+            const storeId = document.getElementById('editProductStoreId').value;
+            const prodId = parseInt(document.getElementById('editProductId').value);
+            const prod = appData.products[storeId]?.find(p => p.id === prodId);
+            if(!prod) return;
+            let image = document.getElementById('productImage').value;
+            if(document.getElementById('productImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('productImageFile').files[0]]))[0];
+            prod.name = document.getElementById('productName').value;
+            prod.oldPrice = parseInt(document.getElementById('productOldPrice').value);
+            prod.newPrice = parseInt(document.getElementById('productNewPrice').value);
+            if(image) prod.image = image;
+            prod.link = document.getElementById('productLink').value || '#';
+            saveData();
+            populateForms();
+            document.getElementById('addProductBtn').style.display = 'block';
+            document.getElementById('updateProductBtn').style.display = 'none';
+            document.getElementById('productForm').reset();
+        });
+
+        // التقييمات
+        document.getElementById('addTestimonialBtn').addEventListener('click', async () => {
+            let image = document.getElementById('testimonialImage').value;
+            if(document.getElementById('testimonialImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('testimonialImageFile').files[0]]))[0];
+            appData.testimonials.push({
+                name: document.getElementById('testimonialName').value,
+                image: image || 'https://via.placeholder.com/100x100',
+                rating: parseInt(document.getElementById('testimonialRating').value),
+                review: document.getElementById('testimonialReview').value
+            });
+            saveData();
+            populateForms();
+            document.getElementById('testimonialForm').reset();
+        });
+
+        document.getElementById('updateTestimonialBtn').addEventListener('click', async () => {
+            const idx = parseInt(document.getElementById('editTestimonialIndex').value);
+            if(isNaN(idx) || idx<0 || idx>=appData.testimonials.length) return;
+            let image = document.getElementById('testimonialImage').value;
+            if(document.getElementById('testimonialImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('testimonialImageFile').files[0]]))[0];
+            appData.testimonials[idx] = {
+                name: document.getElementById('testimonialName').value,
+                image: image || appData.testimonials[idx].image,
+                rating: parseInt(document.getElementById('testimonialRating').value),
+                review: document.getElementById('testimonialReview').value
+            };
+            saveData();
+            populateForms();
+            document.getElementById('addTestimonialBtn').style.display = 'block';
+            document.getElementById('updateTestimonialBtn').style.display = 'none';
+            document.getElementById('testimonialForm').reset();
+        });
+
+        // الإعلانات الدوارة
+        document.getElementById('addCarouselBtn').addEventListener('click', async () => {
+            if(!document.getElementById('carouselName').value) return alert('أدخل اسم الإعلان');
+            let image = document.getElementById('carouselImage').value;
+            if(document.getElementById('carouselImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('carouselImageFile').files[0]]))[0];
+            if(!image) return alert('الصورة مطلوبة');
+            appData.carousel.push({
+                id: 'carousel' + Date.now(),
+                name: document.getElementById('carouselName').value,
+                link: document.getElementById('carouselLink').value,
+                image: image,
+                order: parseInt(document.getElementById('carouselOrder').value) || 0,
+                active: document.getElementById('carouselActive').checked
+            });
+            saveData();
+            populateForms();
+            document.getElementById('carouselForm').reset();
+            document.getElementById('previewCarousel').classList.remove('show');
+        });
+
+        document.getElementById('updateCarouselBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editCarouselId').value;
+            const ad = appData.carousel.find(c => c.id === id);
+            if(!ad) return;
+            let image = document.getElementById('carouselImage').value;
+            if(document.getElementById('carouselImageFile').files[0]) image = (await readFilesAsDataURL([document.getElementById('carouselImageFile').files[0]]))[0];
+            if(!image) return alert('الصورة مطلوبة');
+            ad.name = document.getElementById('carouselName').value;
+            ad.link = document.getElementById('carouselLink').value;
+            ad.image = image;
+            ad.order = parseInt(document.getElementById('carouselOrder').value) || 0;
+            ad.active = document.getElementById('carouselActive').checked;
+            saveData();
+            populateForms();
+            document.getElementById('addCarouselBtn').style.display = 'block';
+            document.getElementById('updateCarouselBtn').style.display = 'none';
+            document.getElementById('carouselForm').reset();
+            document.getElementById('previewCarousel').classList.remove('show');
+        });
+
+        // حفظ الإعدادات العامة
+        document.getElementById('saveGeneralSettings').addEventListener('click', () => {
+            appData.settings.currency = document.getElementById('currencySelect').value;
+            appData.settings.language = document.getElementById('languageSelect').value;
+            appData.settings.showSaudiFlag = document.getElementById('showSaudiFlagCheckbox').checked;
+            appData.settings.cartEnabled = document.getElementById('cartEnabledCheckbox').checked;
+            appData.settings.enableUserProfile = document.getElementById('enableUserProfileCheckbox').checked;
+            if (!appData.settings.orderMethods) appData.settings.orderMethods = {};
+            appData.settings.orderMethods.whatsapp = document.getElementById('orderWhatsappCheckbox').checked;
+            appData.settings.orderMethods.email = document.getElementById('orderEmailCheckbox').checked;
+            appData.settings.orderMethods.chat = document.getElementById('orderChatCheckbox').checked;
+            appData.settings.contactEmail = document.getElementById('contactEmail').value;
+            saveData();
+        });
+
+        // حفظ شارات الثقة
+        document.getElementById('saveTrustBadges').addEventListener('click', () => {
+            const badges = document.getElementById('trustBadgesInput').value.split('\n').map(s => s.trim()).filter(s => s);
+            appData.settings.trustBadges = badges;
+            saveData();
+            renderTrustBadgesList();
+        });
+
+        // إضافة مسابقة
+        document.getElementById('addContestBtn').addEventListener('click', () => {
+            const newContest = {
+                name: document.getElementById('contestName').value,
+                description: document.getElementById('contestDescription').value,
+                endDate: document.getElementById('contestEndDate').value
+            };
+            if (!appData.settings.contests) appData.settings.contests = [];
+            appData.settings.contests.push(newContest);
+            saveData();
+            renderContestsList();
+            document.getElementById('contestForm').reset();
+        });
+
+        // تحديث مسابقة
+        document.getElementById('updateContestBtn').addEventListener('click', () => {
+            const index = document.getElementById('editContestId').value;
+            if (index === '') return;
+            appData.settings.contests[index] = {
+                name: document.getElementById('contestName').value,
+                description: document.getElementById('contestDescription').value,
+                endDate: document.getElementById('contestEndDate').value
+            };
+            saveData();
+            renderContestsList();
+            document.getElementById('addContestBtn').style.display = 'block';
+            document.getElementById('updateContestBtn').style.display = 'none';
+            document.getElementById('contestForm').reset();
+        });
+
+        // حفظ أذونات المتاجر
         document.getElementById('saveStorePermissions').addEventListener('click', () => {
             const storeId = document.getElementById('storePermissionStoreSelect').value;
-            if (!storeId || storeId === 'اختر المتجر') return alert('اختر متجراً أولاً');
-            const store = findStoreById(storeId);
+            if (!storeId) return alert('اختر متجراً');
+            let store = null;
+            for (let cat in appData.stores) {
+                store = appData.stores[cat].find(s => s.id === storeId);
+                if (store) break;
+            }
             if (store) {
                 store.ownerCode = document.getElementById('storeOwnerCode').value;
                 store.allowUpload = document.getElementById('storeAllowUpload').checked;
-                saveToDB();
+                saveData();
                 showToast('تم حفظ أذونات المتجر');
             }
         });
 
-        document.getElementById('publishBtn').addEventListener('click', () => {
-            saveToDB();
-            if (window.broadcastChannel) {
-                window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            }
-            showToast('✅ تم نشر التحديثات');
-        });
-
-        document.getElementById('previewChangesBtn').addEventListener('click', () => {
-            saveToDB();
-            if (window.broadcastChannel) {
-                window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            }
-            window.open('index.html?preview=' + Date.now(), '_blank');
-        });
-
-        document.getElementById('resetVisitorBtn').addEventListener('click', () => {
-            localStorage.setItem('visitorCount', 0);
-            document.getElementById('visitorCount').textContent = 0;
-            showToast('✅ تم إعادة تعيين العداد');
-        });
-
-        // أحداث تغيير القوائم المنسدلة
-        document.getElementById('storeCategorySelect').addEventListener('change', (e) => {
-            populateStoresList(e.target.value);
-        });
-        document.getElementById('productCategorySelect').addEventListener('change', (e) => {
-            const cat = e.target.value;
-            const storeSelect = document.getElementById('productStoreSelect');
-            if (storeSelect && appData.stores[cat]) {
-                storeSelect.innerHTML = '<option>اختر المتجر</option>';
-                appData.stores[cat].forEach(store => {
-                    storeSelect.innerHTML += `<option value="${store.id}">${store.name}</option>`;
-                });
-            }
-        });
-        document.getElementById('storePermissionSelect').addEventListener('change', () => {
-            populateStorePermissions();
-        });
-
-        // رفع الصور
-        function handleImageUpload(fileInput, targetInputId) {
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    document.getElementById(targetInputId).value = e.target.result;
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            }
-        }
-        document.getElementById('categoryFeaturedImageFile').addEventListener('change', () => handleImageUpload(document.getElementById('categoryFeaturedImageFile'), 'categoryFeaturedImage'));
-        document.getElementById('categoryIndexImageFile').addEventListener('change', () => handleImageUpload(document.getElementById('categoryIndexImageFile'), 'categoryIndexImage'));
-        document.getElementById('storeLogoFile').addEventListener('change', () => handleImageUpload(document.getElementById('storeLogoFile'), 'storeLogo'));
-        document.getElementById('productImageFile').addEventListener('change', () => handleImageUpload(document.getElementById('productImageFile'), 'productImage'));
-        document.getElementById('carouselImageFile').addEventListener('change', () => handleImageUpload(document.getElementById('carouselImageFile'), 'carouselImage'));
-        document.getElementById('testimonialImageFile').addEventListener('change', () => handleImageUpload(document.getElementById('testimonialImageFile'), 'testimonialImage'));
-        document.getElementById('headerImagesFile').addEventListener('change', (e) => {
-            const files = e.target.files;
-            const urls = [];
-            for (let i = 0; i < files.length; i++) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    urls.push(ev.target.result);
-                    document.getElementById('headerImagesInput').value = urls.join('\n');
-                };
-                reader.readAsDataURL(files[i]);
-            }
-        });
-
-        // ================== دوال الخدمات السحابية (الموسعة) ==================
-        function renderCloudSettingsForm(service) {
-            const container = document.getElementById('cloudSettingsForm');
-            if (!service) {
-                container.innerHTML = '';
-                return;
-            }
-            let fields = '';
-            switch(service) {
-                case 'firebase':
-                    fields = `
-                        <label>معرف المشروع (Project ID)</label>
-                        <input type="text" id="firebaseProjectId" placeholder="your-project-id">
-                        <label>مفتاح API (API Key)</label>
-                        <input type="text" id="firebaseApiKey" placeholder="AIza...">
-                        <label>معرف التطبيق (App ID)</label>
-                        <input type="text" id="firebaseAppId" placeholder="1:...">
-                        <label>معرف المرسل (Messaging Sender ID)</label>
-                        <input type="text" id="firebaseMessagingSenderId" placeholder="optional">
-                    `;
-                    break;
-                case 'supabase':
-                case 'supabase_db':
-                    fields = `
-                        <label>رابط Supabase URL</label>
-                        <input type="url" id="supabaseUrl" placeholder="https://xyz.supabase.co">
-                        <label>مفتاح الأنون (Anon Key)</label>
-                        <input type="text" id="supabaseAnonKey" placeholder="eyJ...">
-                    `;
-                    break;
-                case 'aws_dynamodb':
-                    fields = `
-                        <label>Access Key ID</label>
-                        <input type="text" id="awsAccessKey" placeholder="AKIA...">
-                        <label>Secret Access Key</label>
-                        <input type="password" id="awsSecretKey" placeholder="...">
-                        <label>Region</label>
-                        <input type="text" id="awsRegion" placeholder="us-east-1">
-                        <label>Table Name</label>
-                        <input type="text" id="awsTableName" placeholder="appData">
-                    `;
-                    break;
-                case 'gcp_firestore':
-                    fields = `
-                        <label>Project ID</label>
-                        <input type="text" id="gcpProjectId" placeholder="my-project">
-                        <label>API Key</label>
-                        <input type="text" id="gcpApiKey" placeholder="AIza...">
-                        <label>Database ID</label>
-                        <input type="text" id="gcpDatabaseId" placeholder="(default)">
-                    `;
-                    break;
-                case 'mongodb_atlas':
-                    fields = `
-                        <label>Connection String</label>
-                        <input type="text" id="mongoConnectionString" placeholder="mongodb+srv://...">
-                        <label>Database Name</label>
-                        <input type="text" id="mongoDatabase" placeholder="marketsDB">
-                        <label>Collection Name</label>
-                        <input type="text" id="mongoCollection" placeholder="appData">
-                    `;
-                    break;
-                case 'back4app':
-                    fields = `
-                        <label>App ID</label>
-                        <input type="text" id="back4appAppId" placeholder="...">
-                        <label>Client Key</label>
-                        <input type="text" id="back4appClientKey" placeholder="...">
-                        <label>REST API URL</label>
-                        <input type="url" id="back4appApiUrl" placeholder="https://parseapi.back4app.com/classes/">
-                    `;
-                    break;
-                case 'vercel':
-                    fields = `
-                        <label>Project ID</label>
-                        <input type="text" id="vercelProjectId" placeholder="prj_...">
-                        <label>API Token</label>
-                        <input type="password" id="vercelToken" placeholder="...">
-                    `;
-                    break;
-                case 'netlify':
-                    fields = `
-                        <label>Site ID</label>
-                        <input type="text" id="netlifySiteId" placeholder="...">
-                        <label>Access Token</label>
-                        <input type="password" id="netlifyToken" placeholder="...">
-                    `;
-                    break;
-                case 'digitalocean':
-                    fields = `
-                        <label>Endpoint</label>
-                        <input type="url" id="doEndpoint" placeholder="https://nyc3.digitaloceanspaces.com">
-                        <label>Access Key ID</label>
-                        <input type="text" id="doAccessKey" placeholder="...">
-                        <label>Secret Access Key</label>
-                        <input type="password" id="doSecretKey" placeholder="...">
-                        <label>Bucket Name</label>
-                        <input type="text" id="doBucket" placeholder="my-bucket">
-                    `;
-                    break;
-                case 'custom_rest':
-                    fields = `
-                        <label>API Endpoint URL</label>
-                        <input type="url" id="customApiUrl" placeholder="https://api.example.com/data">
-                        <label>API Key (optional)</label>
-                        <input type="text" id="customApiKey" placeholder="Bearer ...">
-                        <label>HTTP Method (GET/POST)</label>
-                        <select id="customMethod">
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                        </select>
-                    `;
-                    break;
-                default:
-                    fields = `<p>الإعدادات لهذه الخدمة قيد التطوير. يمكنك إدخال أي بيانات مطلوبة يدويًا.</p>
-                              <textarea id="customSettings" rows="5" placeholder="ضع هنا أي إعدادات مطلوبة (JSON)"></textarea>`;
-            }
-            container.innerHTML = fields;
+        // دوال شارات الثقة
+        function renderTrustBadgesList() {
+            const list = document.getElementById('trustBadgesList');
+            list.innerHTML = '';
+            (appData.settings.trustBadges || []).forEach((badge, index) => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `<span><img src="${badge}" style="width:30px; height:30px;"> ${badge.substring(0,30)}...</span>
+                    <div><button onclick="deleteTrustBadge(${index})">حذف</button></div>`;
+                list.appendChild(div);
+            });
         }
 
-        async function saveCloudConfig() {
-            const service = document.getElementById('cloudServiceSelect').value;
-            if (!service) {
-                clearExternalServiceConfig();
-                showToast('تم إلغاء تفعيل الخدمة السحابية');
-                return;
-            }
-            let settings = {};
-            switch(service) {
-                case 'firebase':
-                    settings = {
-                        projectId: document.getElementById('firebaseProjectId').value,
-                        apiKey: document.getElementById('firebaseApiKey').value,
-                        appId: document.getElementById('firebaseAppId').value,
-                        messagingSenderId: document.getElementById('firebaseMessagingSenderId').value
-                    };
-                    break;
-                case 'supabase':
-                case 'supabase_db':
-                    settings = {
-                        url: document.getElementById('supabaseUrl').value,
-                        anonKey: document.getElementById('supabaseAnonKey').value
-                    };
-                    break;
-                case 'aws_dynamodb':
-                    settings = {
-                        accessKey: document.getElementById('awsAccessKey').value,
-                        secretKey: document.getElementById('awsSecretKey').value,
-                        region: document.getElementById('awsRegion').value,
-                        tableName: document.getElementById('awsTableName').value
-                    };
-                    break;
-                case 'gcp_firestore':
-                    settings = {
-                        projectId: document.getElementById('gcpProjectId').value,
-                        apiKey: document.getElementById('gcpApiKey').value,
-                        databaseId: document.getElementById('gcpDatabaseId').value
-                    };
-                    break;
-                case 'mongodb_atlas':
-                    settings = {
-                        connectionString: document.getElementById('mongoConnectionString').value,
-                        database: document.getElementById('mongoDatabase').value,
-                        collection: document.getElementById('mongoCollection').value
-                    };
-                    break;
-                case 'back4app':
-                    settings = {
-                        appId: document.getElementById('back4appAppId').value,
-                        clientKey: document.getElementById('back4appClientKey').value,
-                        apiUrl: document.getElementById('back4appApiUrl').value
-                    };
-                    break;
-                case 'vercel':
-                    settings = {
-                        projectId: document.getElementById('vercelProjectId').value,
-                        token: document.getElementById('vercelToken').value
-                    };
-                    break;
-                case 'netlify':
-                    settings = {
-                        siteId: document.getElementById('netlifySiteId').value,
-                        token: document.getElementById('netlifyToken').value
-                    };
-                    break;
-                case 'digitalocean':
-                    settings = {
-                        endpoint: document.getElementById('doEndpoint').value,
-                        accessKey: document.getElementById('doAccessKey').value,
-                        secretKey: document.getElementById('doSecretKey').value,
-                        bucket: document.getElementById('doBucket').value
-                    };
-                    break;
-                case 'custom_rest':
-                    settings = {
-                        url: document.getElementById('customApiUrl').value,
-                        apiKey: document.getElementById('customApiKey').value,
-                        method: document.getElementById('customMethod').value
-                    };
-                    break;
-                default:
-                    settings = { custom: document.getElementById('customSettings').value };
-            }
-            saveExternalServiceConfig(service, settings);
-            showToast('تم حفظ إعدادات الخدمة السحابية');
+        window.deleteTrustBadge = (index) => {
+            appData.settings.trustBadges.splice(index, 1);
+            saveData();
+            renderTrustBadgesList();
+        };
 
-            // رفع البيانات الحالية إلى السحابة
-            try {
-                await saveToExternalService(appData);
-                showToast('تم رفع البيانات إلى السحابة بنجاح');
-            } catch(e) {
-                showToast('تم حفظ الإعدادات ولكن فشل رفع البيانات');
-            }
-
-            // إخطار الموقع
-            if (window.broadcastChannel) {
-                window.broadcastChannel.postMessage({ type: 'CLOUD_CONFIG_UPDATED' });
-            }
+        // دوال المسابقات
+        function renderContestsList() {
+            const list = document.getElementById('contestsList');
+            list.innerHTML = '';
+            (appData.settings.contests || []).forEach((contest, index) => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `<span>${contest.name} (${contest.endDate})</span>
+                    <div><button class="edit" onclick="editContest(${index})">تعديل</button><button onclick="deleteContest(${index})">حذف</button></div>`;
+                list.appendChild(div);
+            });
         }
 
-        async function testCloudConnection() {
-            const service = document.getElementById('cloudServiceSelect').value;
-            if (!service) {
-                showToast('الرجاء اختيار خدمة أولاً');
-                return;
-            }
-            showToast('جاري اختبار الاتصال...');
-            setTimeout(() => {
-                showToast('✅ تم الاتصال بنجاح (محاكاة)');
-            }, 1000);
+        window.deleteContest = (index) => {
+            appData.settings.contests.splice(index, 1);
+            saveData();
+            renderContestsList();
+        };
+
+        window.editContest = (index) => {
+            const contest = appData.settings.contests[index];
+            document.getElementById('editContestId').value = index;
+            document.getElementById('contestName').value = contest.name;
+            document.getElementById('contestDescription').value = contest.description;
+            document.getElementById('contestEndDate').value = contest.endDate;
+            document.getElementById('addContestBtn').style.display = 'none';
+            document.getElementById('updateContestBtn').style.display = 'block';
+        };
+
+        // دوال الرسائل
+        function renderMessagesList() {
+            const list = document.getElementById('messagesList');
+            list.innerHTML = '';
+            (appData.messages || []).forEach((msg, index) => {
+                const div = document.createElement('div');
+                div.className = 'admin-item';
+                div.innerHTML = `
+                    <span><strong>${msg.name}</strong> (${msg.email})<br>${msg.subject}: ${msg.message.substring(0,50)}...</span>
+                    <div><button onclick="deleteMessage(${index})">حذف</button></div>
+                `;
+                list.appendChild(div);
+            });
         }
 
-        document.getElementById('cloudServiceSelect').addEventListener('change', (e) => {
-            renderCloudSettingsForm(e.target.value);
-        });
-        document.getElementById('saveCloudConfigBtn').addEventListener('click', saveCloudConfig);
-        document.getElementById('testCloudConnectionBtn').addEventListener('click', testCloudConnection);
+        window.deleteMessage = (index) => {
+            appData.messages.splice(index, 1);
+            saveData();
+            renderMessagesList();
+        };
 
-        function loadCloudConfigIntoForm() {
-            const config = loadExternalServiceConfig();
-            if (config) {
-                document.getElementById('cloudServiceSelect').value = config.service;
-                renderCloudSettingsForm(config.service);
-                const settings = config.settings;
-                if (config.service === 'firebase') {
-                    if (document.getElementById('firebaseProjectId')) document.getElementById('firebaseProjectId').value = settings.projectId || '';
-                    if (document.getElementById('firebaseApiKey')) document.getElementById('firebaseApiKey').value = settings.apiKey || '';
-                    if (document.getElementById('firebaseAppId')) document.getElementById('firebaseAppId').value = settings.appId || '';
-                    if (document.getElementById('firebaseMessagingSenderId')) document.getElementById('firebaseMessagingSenderId').value = settings.messagingSenderId || '';
-                } else if (config.service === 'supabase' || config.service === 'supabase_db') {
-                    if (document.getElementById('supabaseUrl')) document.getElementById('supabaseUrl').value = settings.url || '';
-                    if (document.getElementById('supabaseAnonKey')) document.getElementById('supabaseAnonKey').value = settings.anonKey || '';
-                } else if (config.service === 'aws_dynamodb') {
-                    if (document.getElementById('awsAccessKey')) document.getElementById('awsAccessKey').value = settings.accessKey || '';
-                    if (document.getElementById('awsSecretKey')) document.getElementById('awsSecretKey').value = settings.secretKey || '';
-                    if (document.getElementById('awsRegion')) document.getElementById('awsRegion').value = settings.region || '';
-                    if (document.getElementById('awsTableName')) document.getElementById('awsTableName').value = settings.tableName || '';
-                } else if (config.service === 'gcp_firestore') {
-                    if (document.getElementById('gcpProjectId')) document.getElementById('gcpProjectId').value = settings.projectId || '';
-                    if (document.getElementById('gcpApiKey')) document.getElementById('gcpApiKey').value = settings.apiKey || '';
-                    if (document.getElementById('gcpDatabaseId')) document.getElementById('gcpDatabaseId').value = settings.databaseId || '';
-                } else if (config.service === 'mongodb_atlas') {
-                    if (document.getElementById('mongoConnectionString')) document.getElementById('mongoConnectionString').value = settings.connectionString || '';
-                    if (document.getElementById('mongoDatabase')) document.getElementById('mongoDatabase').value = settings.database || '';
-                    if (document.getElementById('mongoCollection')) document.getElementById('mongoCollection').value = settings.collection || '';
-                } else if (config.service === 'back4app') {
-                    if (document.getElementById('back4appAppId')) document.getElementById('back4appAppId').value = settings.appId || '';
-                    if (document.getElementById('back4appClientKey')) document.getElementById('back4appClientKey').value = settings.clientKey || '';
-                    if (document.getElementById('back4appApiUrl')) document.getElementById('back4appApiUrl').value = settings.apiUrl || '';
-                } else if (config.service === 'vercel') {
-                    if (document.getElementById('vercelProjectId')) document.getElementById('vercelProjectId').value = settings.projectId || '';
-                    if (document.getElementById('vercelToken')) document.getElementById('vercelToken').value = settings.token || '';
-                } else if (config.service === 'netlify') {
-                    if (document.getElementById('netlifySiteId')) document.getElementById('netlifySiteId').value = settings.siteId || '';
-                    if (document.getElementById('netlifyToken')) document.getElementById('netlifyToken').value = settings.token || '';
-                } else if (config.service === 'digitalocean') {
-                    if (document.getElementById('doEndpoint')) document.getElementById('doEndpoint').value = settings.endpoint || '';
-                    if (document.getElementById('doAccessKey')) document.getElementById('doAccessKey').value = settings.accessKey || '';
-                    if (document.getElementById('doSecretKey')) document.getElementById('doSecretKey').value = settings.secretKey || '';
-                    if (document.getElementById('doBucket')) document.getElementById('doBucket').value = settings.bucket || '';
-                } else if (config.service === 'custom_rest') {
-                    if (document.getElementById('customApiUrl')) document.getElementById('customApiUrl').value = settings.url || '';
-                    if (document.getElementById('customApiKey')) document.getElementById('customApiKey').value = settings.apiKey || '';
-                    if (document.getElementById('customMethod')) document.getElementById('customMethod').value = settings.method || 'GET';
-                } else {
-                    if (document.getElementById('customSettings')) document.getElementById('customSettings').value = settings.custom || '';
-                }
-            } else {
-                document.getElementById('cloudServiceSelect').value = '';
-                renderCloudSettingsForm('');
-            }
+        // ================== تهيئة الصفحة ==================
+        function initializeAdmin() {
+            document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
+            document.getElementById('resetVisitorBtn').addEventListener('click', () => {
+                localStorage.setItem('visitorCount', 0);
+                document.getElementById('visitorCount').textContent = 0;
+                showToast('✅ تم إعادة تعيين العداد');
+            });
+
+            document.getElementById('publishBtn').addEventListener('click', publishUpdates);
+
+            document.getElementById('previewChangesBtn').addEventListener('click', function() {
+                saveData();
+                publishUpdates();
+                const previewWindow = window.open('index.html?preview=' + Date.now(), '_blank');
+                setTimeout(() => {
+                    if (previewWindow) previewWindow.postMessage('refresh', '*');
+                }, 1000);
+            });
+
+            populateForms();
         }
 
-        // ================== بدء التشغيل ==================
-        window.checkLogin = async function() {
+        window.checkLogin = function() {
             const code = document.getElementById('secretCodeInput').value;
-            if (code === "202122") {
+            if (code === SECRET_CODE) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
                 document.getElementById('previewChangesBtn').style.display = 'block';
                 sessionStorage.setItem('adminLoggedIn', 'true');
-                await loadInitialData();
-                refreshAllLists();
-                loadCloudConfigIntoForm();
-                document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
-                setInterval(() => {
-                    if (appData) saveToDB();
-                }, 30000);
-                window.broadcastChannel = new BroadcastChannel('markets_channel');
-            } else {
-                alert('الرمز غير صحيح');
-            }
+                initializeAdmin();
+                showUpdateIndicator();
+            } else alert('الرمز غير صحيح');
         };
+        document.getElementById('secretCodeInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkLogin(); });
 
-        document.getElementById('secretCodeInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkLogin();
+        function showUpdateIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'update-indicator';
+            indicator.textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString();
+            document.body.appendChild(indicator);
+            setTimeout(() => indicator.remove(), 3000);
+        }
+
+        window.addEventListener('message', (event) => {
+            if (event.data === 'refresh') {
+                appData = JSON.parse(localStorage.getItem('storeData')) || defaultData;
+                populateForms();
+            }
         });
 
-        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-            checkLogin();
-        }
+        setInterval(() => {
+            if (document.getElementById('adminContent').style.display === 'block') {
+                saveData();
+            }
+        }, 30000);
     </script>
 </body>
 </html>
