@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -13,16 +13,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Security: Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://*.googleapis.com https://*.supabase.co;">
-    <!-- CryptoJS for encryption -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-    <!-- DOMPurify for XSS protection -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <!-- ملفات خارجية (إصدارات محددة) -->
+    <link rel="stylesheet" href="style.css?v=2">
+    <script src="app.js?v=5"></script>
     <style>
-        /* ========== جميع الأنماط ========== */
+        /* أنماط الموقع الكاملة (نفس الكود الأصلي) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background-color: #f4f7fc; color: #1e293b; line-height: 1.6; user-select: none; }
+        body { background-color: #f4f7fc; color: #1e293b; line-height: 1.6; }
 
         :root {
             --category-bg: linear-gradient(145deg, #f9eef7, #f3d9e8);
@@ -240,51 +237,7 @@
         .back-home-btn { background: #3b82f6; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 40px; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-bottom: 1rem; }
         .back-home-btn:hover { background: #2563eb; }
         .visitor-counter { background: #fbbf24; color: #0f172a; padding: 10px 20px; border-radius: 40px; font-weight: 700; text-align: center; margin: 10px 0; display: inline-block; }
-        
-        #pullRefreshIndicator {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: #fbbf24;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            transition: top 0.2s ease;
-            z-index: 10000;
-            font-family: 'Cairo', sans-serif;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        body {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        img, a, button {
-            -webkit-tap-highlight-color: transparent;
-        }
     </style>
-    <script>
-        // منع النقر بزر الماوس الأيمن
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        // منع اختصارات النسخ (Ctrl+C, Ctrl+X, Ctrl+V)
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-    </script>
 </head>
 <body class="full-width">
     <a href="#" class="whatsapp-float" id="whatsappFloat" target="_blank"><i class="fab fa-whatsapp"></i></a>
@@ -307,10 +260,12 @@
         </div>
     </div>
 
+    <!-- زر التحديث السريع (للمشرف فقط) -->
     <div class="refresh-btn" id="adminRefreshBtn">
         <button onclick="refreshData()"><i class="fas fa-sync-alt"></i> تحديث البيانات</button>
     </div>
 
+    <!-- شريط المسابقات -->
     <div id="contestsBar" class="contests-bar" style="display: none;">
         <div class="contests-content" id="contestsContent"></div>
     </div>
@@ -326,6 +281,7 @@
         <div class="top-ticker-content" id="tickerContent"></div>
     </div>
 
+    <!-- شريط البحث -->
     <div class="search-container">
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="ابحث عن منتج أو متجر...">
@@ -335,6 +291,7 @@
 
     <div class="index-grid" id="indexGrid"></div>
 
+    <!-- عداد الزوار -->
     <div style="text-align: center; margin: 10px;">
         <div class="visitor-counter">عدد الزوار: <span id="visitorCount">0</span></div>
     </div>
@@ -394,691 +351,276 @@
     </div>
 
     <script>
-        // ================== الأمان والتشفير ==================
-        const ENCRYPTION_KEY = "S3cur3K3y2025!";
-        function encryptData(data) {
-            return CryptoJS.AES.encrypt(JSON.stringify(data), ENCRYPTION_KEY).toString();
-        }
-        function decryptData(encrypted) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(encrypted, ENCRYPTION_KEY);
-                return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-            } catch(e) { return null; }
-        }
+        // ================== إعدادات JSONBin ==================
+        const JSONBIN_ID = '69a64ee243b1c97be9adca6b'; // معرف الـ Bin الخاص بك
 
-        // ================== إعدادات الخدمات السحابية ==================
-        let externalServiceConfig = null;
-
-        function loadExternalServiceConfig() {
-            const encrypted = localStorage.getItem('cloud_config');
-            if (encrypted) {
-                const config = decryptData(encrypted);
-                if (config && config.enabled) {
-                    externalServiceConfig = config;
-                    return true;
-                }
-            }
-            externalServiceConfig = null;
-            return false;
-        }
-
-        // دوال Firebase
-        let firebaseApp = null;
-        let firebaseDb = null;
-        async function initFirebase(settings) {
-            if (!window.firebase) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
-                    script.onload = () => {
-                        const dbScript = document.createElement('script');
-                        dbScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js';
-                        dbScript.onload = resolve;
-                        dbScript.onerror = reject;
-                        document.head.appendChild(dbScript);
-                    };
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-            if (!firebaseApp) {
-                const firebaseConfig = {
-                    apiKey: settings.apiKey,
-                    authDomain: settings.authDomain || `${settings.projectId}.firebaseapp.com`,
-                    projectId: settings.projectId,
-                    storageBucket: settings.storageBucket || `${settings.projectId}.appspot.com`,
-                    messagingSenderId: settings.messagingSenderId,
-                    appId: settings.appId,
-                    databaseURL: settings.databaseURL || `https://${settings.projectId}.firebaseio.com`
-                };
-                firebaseApp = firebase.initializeApp(firebaseConfig);
-                firebaseDb = firebase.database();
-            }
-            return firebaseDb;
-        }
-
-        async function saveToFirebase(data) {
-            const db = await initFirebase(externalServiceConfig.settings);
-            await db.ref('appData').set(data);
-            return true;
-        }
-
-        async function loadFromFirebase() {
-            const db = await initFirebase(externalServiceConfig.settings);
-            const snapshot = await db.ref('appData').once('value');
-            return snapshot.val();
-        }
-
-        // دوال Supabase
-        let supabaseClient = null;
-        async function initSupabase(settings) {
-            if (!window.supabase) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-            if (!supabaseClient) {
-                supabaseClient = window.supabase.createClient(settings.url, settings.anonKey);
-            }
-            return supabaseClient;
-        }
-
-        async function saveToSupabase(data) {
-            const client = await initSupabase(externalServiceConfig.settings);
-            const { error } = await client.from('app_data').upsert({ id: 1, data });
-            if (error) throw error;
-            return true;
-        }
-
-        async function loadFromSupabase() {
-            const client = await initSupabase(externalServiceConfig.settings);
-            const { data, error } = await client.from('app_data').select('data').eq('id', 1).single();
-            if (error) throw error;
-            return data.data;
-        }
-
-        // دوال عامة لـ REST API (لجميع الخدمات الجديدة)
-        async function saveToGenericREST(settings, data) {
-            const options = {
-                method: settings.method === 'POST' ? 'POST' : 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            };
-            if (settings.apiKey) {
-                options.headers['Authorization'] = settings.apiKey.startsWith('Bearer ') ? settings.apiKey : `Bearer ${settings.apiKey}`;
-            }
-            const response = await fetch(settings.url, options);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return true;
-        }
-
-        async function loadFromGenericREST(settings) {
-            const options = {
-                method: 'GET',
-                headers: {}
-            };
-            if (settings.apiKey) {
-                options.headers['Authorization'] = settings.apiKey.startsWith('Bearer ') ? settings.apiKey : `Bearer ${settings.apiKey}`;
-            }
-            const response = await fetch(settings.url, options);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        }
-
-        async function saveToExternalService(data) {
-            if (!externalServiceConfig) return false;
-            try {
-                switch(externalServiceConfig.service) {
-                    case 'firebase': return await saveToFirebase(data);
-                    case 'supabase':
-                    case 'supabase_db': return await saveToSupabase(data);
-                    case 'aws_dynamodb':
-                    case 'gcp_firestore':
-                    case 'mongodb_atlas':
-                    case 'back4app':
-                    case 'vercel':
-                    case 'netlify':
-                    case 'digitalocean':
-                    case 'custom_rest':
-                        return await saveToGenericREST(externalServiceConfig.settings, data);
-                    default: return false;
-                }
-            } catch(e) {
-                console.error('فشل الحفظ في الخدمة الخارجية', e);
-                return false;
-            }
-        }
-
-        async function loadFromExternalService() {
-            if (!externalServiceConfig) return null;
-            try {
-                switch(externalServiceConfig.service) {
-                    case 'firebase': return await loadFromFirebase();
-                    case 'supabase':
-                    case 'supabase_db': return await loadFromSupabase();
-                    case 'aws_dynamodb':
-                    case 'gcp_firestore':
-                    case 'mongodb_atlas':
-                    case 'back4app':
-                    case 'vercel':
-                    case 'netlify':
-                    case 'digitalocean':
-                    case 'custom_rest':
-                        return await loadFromGenericREST(externalServiceConfig.settings);
-                    default: return null;
-                }
-            } catch(e) {
-                console.error('فشل التحميل من الخدمة الخارجية', e);
-                return null;
-            }
-        }
-
-        // ================== نظام قاعدة البيانات (IndexedDB + localStorage) ==================
-        (function() {
-            const DB_NAME = 'marketsDB';
-            const STORE_NAME = 'appData';
-            const DB_VERSION = 1;
-
-            const defaultData = {
-                header: {
-                    title: "أسواق ريادة المستهلك",
-                    subtitle: "أفضل المتاجر والمنتجات بأفضل الأسعار",
-                    images: [
-                        'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1555529669-e69e7aa56ba9?w=1600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1441984904996-4e9c9484f3b6?w=1600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=600&fit=crop'
-                    ]
-                },
-                ticker: [
-                    "🔥 عروض حصرية تصل إلى 50% خصم",
-                    "💎 أشهر الماركات العالمية",
-                    "🚚 توصيل مجاني للطلبات فوق 200 ريال",
-                    "🎁 هدايا مجانية مع كل طلب",
-                    "💰 خصم خاص للعملاء الجدد 20%",
-                    "⭐ تقييمات عملاء ممتازة"
+        // ================== البيانات الافتراضية الكاملة ==================
+        const defaultData = {
+            header: {
+                title: "أسواق ريادة المستهلك",
+                subtitle: "أفضل المتاجر والمنتجات بأفضل الأسعار",
+                images: [
+                    'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1555529669-e69e7aa56ba9?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1441984904996-4e9c9484f3b6?w=1600&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=600&fit=crop'
+                ]
+            },
+            ticker: [
+                "🔥 عروض حصرية تصل إلى 50% خصم",
+                "💎 أشهر الماركات العالمية",
+                "🚚 توصيل مجاني للطلبات فوق 200 ريال",
+                "🎁 هدايا مجانية مع كل طلب",
+                "💰 خصم خاص للعملاء الجدد 20%",
+                "⭐ تقييمات عملاء ممتازة"
+            ],
+            carousel: [],
+            design: {
+                categoryBg: "linear-gradient(145deg, #f9eef7, #f3d9e8)",
+                categoryText: "#9b4d96",
+                categoryFontSize: "2rem",
+                storeBg: "#ffffff",
+                storeText: "#1e293b",
+                storeFontSize: "1.3rem",
+                productBg: "#ffffff",
+                productText: "#1e293b",
+                productFontSize: "0.85rem",
+                adBg: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+                adText: "#0f172a",
+                adFontSize: "1.1rem",
+                generalFontSize: "1rem"
+            },
+            categories: [
+                { id: "cat1", name: "العطور والبخور", icon: "fas fa-spray-can-sparkles", slug: "perfumes", color: "#9b4d96", featuredImage: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 1, adText: "", adEnabled: false },
+                { id: "cat2", name: "الورد والهدايا", icon: "fas fa-gift", slug: "gifts", color: "#d97706", featuredImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 2, adText: "", adEnabled: false },
+                { id: "cat3", name: "الإكسسوارات", icon: "fas fa-ring", slug: "accessories", color: "#4f6f8f", featuredImage: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 3, adText: "", adEnabled: false },
+                { id: "cat4", name: "الأزياء", icon: "fas fa-tshirt", slug: "fashion", color: "#2563eb", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 4, adText: "", adEnabled: false },
+                { id: "cat5", name: "الإلكترونيات", icon: "fas fa-laptop", slug: "electronics", color: "#0e7c7c", featuredImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false },
+                { id: "cat6", name: "الأدوات المنزلية", icon: "fas fa-utensils", slug: "home", color: "#2b6e4f", featuredImage: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1583847268964-b28dc8f7f92d?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 6, adText: "", adEnabled: false }
+            ],
+            stores: {},
+            products: {},
+            testimonials: [],
+            footer: {
+                email: "support@example.com",
+                phone: "+966 123 456 789",
+                whatsapp: "https://wa.me/96777856209",
+                social: [
+                    { icon: "fab fa-facebook-f", url: "https://facebook.com" },
+                    { icon: "fab fa-twitter", url: "https://twitter.com" },
+                    { icon: "fab fa-instagram", url: "https://instagram.com" },
+                    { icon: "fab fa-whatsapp", url: "https://whatsapp.com" }
                 ],
-                carousel: [],
-                design: {
-                    categoryBg: "linear-gradient(145deg, #f9eef7, #f3d9e8)",
-                    categoryText: "#9b4d96",
-                    categoryFontSize: "2rem",
-                    storeBg: "#ffffff",
-                    storeText: "#1e293b",
-                    storeFontSize: "1.3rem",
-                    productBg: "#ffffff",
-                    productText: "#1e293b",
-                    productFontSize: "0.85rem",
-                    adBg: "linear-gradient(90deg, #fbbf24, #f59e0b)",
-                    adText: "#0f172a",
-                    adFontSize: "1.1rem",
-                    generalFontSize: "1rem"
-                },
-                categories: [
-                    { id: "cat1", name: "العطور والبخور", icon: "fas fa-spray-can-sparkles", slug: "perfumes", color: "#9b4d96", featuredImage: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 1, adText: "", adEnabled: false },
-                    { id: "cat2", name: "الورد والهدايا", icon: "fas fa-gift", slug: "gifts", color: "#d97706", featuredImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 2, adText: "", adEnabled: false },
-                    { id: "cat3", name: "الإكسسوارات", icon: "fas fa-ring", slug: "accessories", color: "#4f6f8f", featuredImage: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 3, adText: "", adEnabled: false },
-                    { id: "cat4", name: "الأزياء", icon: "fas fa-tshirt", slug: "fashion", color: "#2563eb", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 4, adText: "", adEnabled: false },
-                    { id: "cat5", name: "الإلكترونيات", icon: "fas fa-laptop", slug: "electronics", color: "#0e7c7c", featuredImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false },
-                    { id: "cat6", name: "الأدوات المنزلية", icon: "fas fa-utensils", slug: "home", color: "#2b6e4f", featuredImage: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1583847268964-b28dc8f7f92d?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 6, adText: "", adEnabled: false }
+                payments: ["fab fa-cc-visa", "fab fa-cc-mastercard", "fab fa-cc-paypal", "fab fa-cc-apple-pay", "fab fa-cc-stripe"]
+            },
+            settings: {
+                currency: "SAR",
+                language: "ar",
+                showSaudiFlag: false,
+                cartEnabled: false,
+                enableUserProfile: true,
+                orderMethods: { whatsapp: true, email: true, chat: true },
+                trustBadges: [
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Flag_of_Saudi_Arabia.svg/1200px-Flag_of_Saudi_Arabia.svg.png",
+                    "https://www.sfd.gov.sa/themes/custom/sfd/assets/images/logo.svg"
                 ],
-                stores: {},
-                products: {},
-                testimonials: [],
-                footer: {
-                    email: "support@example.com",
-                    phone: "+966 123 456 789",
-                    whatsapp: "https://wa.me/96777856209",
-                    social: [
-                        { icon: "fab fa-facebook-f", url: "https://facebook.com" },
-                        { icon: "fab fa-twitter", url: "https://twitter.com" },
-                        { icon: "fab fa-instagram", url: "https://instagram.com" },
-                        { icon: "fab fa-whatsapp", url: "https://whatsapp.com" }
-                    ],
-                    payments: ["fab fa-cc-visa", "fab fa-cc-mastercard", "fab fa-cc-paypal", "fab fa-cc-apple-pay", "fab fa-cc-stripe"]
-                },
-                settings: {
-                    currency: "SAR",
-                    language: "ar",
-                    showSaudiFlag: false,
-                    cartEnabled: false,
-                    enableUserProfile: true,
-                    orderMethods: { whatsapp: true, email: true, chat: true },
-                    trustBadges: [
-                        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Flag_of_Saudi_Arabia.svg/1200px-Flag_of_Saudi_Arabia.svg.png",
-                        "https://www.sfd.gov.sa/themes/custom/sfd/assets/images/logo.svg"
-                    ],
-                    contests: [],
-                    contactEmail: "admin@example.com"
-                },
-                messages: [],
-                indexes: {}
+                contests: [],
+                contactEmail: "admin@example.com"
+            },
+            messages: []
+        };
+
+        // دالة بناء المتاجر والمنتجات الافتراضية (10 منتجات لكل متجر)
+        (function buildDefaultStoresAndProducts() {
+            const storeNamesByCategory = {
+                "العطور والبخور": ["ديوان العطور", "أريج الشرق", "العود الملكي", "مسك الليل", "نسمات العرب"],
+                "الورد والهدايا": ["زهرة الحب", "هدايا وورود", "روز جاردن", "قطاف الأزهار", "بوكيه"],
+                "الإكسسوارات": ["إكسسوارات أنيقة", "لمسات فنية", "تألق", "سوارة", "فخامة"],
+                "الأزياء": ["موضة الشباب", "أزياء راقية", "أناقة", "بيت الموضة", "القطعة الفريدة"],
+                "الإلكترونيات": ["تك إلكترونيك", "ديجتال ستور", "سمارت وورلد", "إكسترا تك", "جيكس"],
+                "الأدوات المنزلية": ["بيتي الجميل", "منزلي", "أواني العز", "ديكوري", "البيت المثالي"]
             };
-
-            // بناء المتاجر والمنتجات الافتراضية
-            (function buildDefaultStoresAndProducts() {
-                const storeNamesByCategory = {
-                    "العطور والبخور": ["ديوان العطور", "أريج الشرق", "العود الملكي", "مسك الليل", "نسمات العرب"],
-                    "الورد والهدايا": ["زهرة الحب", "هدايا وورود", "روز جاردن", "قطاف الأزهار", "بوكيه"],
-                    "الإكسسوارات": ["إكسسوارات أنيقة", "لمسات فنية", "تألق", "سوارة", "فخامة"],
-                    "الأزياء": ["موضة الشباب", "أزياء راقية", "أناقة", "بيت الموضة", "القطعة الفريدة"],
-                    "الإلكترونيات": ["تك إلكترونيك", "ديجتال ستور", "سمارت وورلد", "إكسترا تك", "جيكس"],
-                    "الأدوات المنزلية": ["بيتي الجميل", "منزلي", "أواني العز", "ديكوري", "البيت المثالي"]
-                };
-                const productNamesByCategory = {
-                    "العطور والبخور": ["عطر مسك أبيض", "دهن عود كمبودي", "بخور عود معمول", "معطر جو فاخر", "عطر ورد دمشقي"],
-                    "الورد والهدايا": ["باقة ورد أحمر", "سلة هدايا فاخرة", "دبدوب مع ورد", "شوكولاتة بلجيكية", "بطاقة معايدة"],
-                    "الإكسسوارات": ["ساعة رجالية فاخرة", "نظارة شمسية", "سوار من الجلد", "قلادة فضية", "أقراط ذهبية"],
-                    "الأزياء": ["تيشيرت قطني", "جينز أزرق", "فستان سهرة", "حذاء رياضي", "بدلة رسمية"],
-                    "الإلكترونيات": ["آيفون 15", "سامسونج S24", "لابتوب HP", "سماعات بلوتوث", "ساعة ذكية"],
-                    "الأدوات المنزلية": ["طقم أواني طبخ", "خلاط كهربائي", "ميكروويف", "مكنسة كهربائية", "غلاية ماء"]
-                };
-                const stores = {};
-                const products = {};
-                defaultData.categories.forEach(cat => {
-                    const catName = cat.name;
-                    const storeNames = storeNamesByCategory[catName] || [];
-                    stores[catName] = [];
-                    for (let s = 0; s < storeNames.length; s++) {
-                        const storeId = `store-${cat.id}-${s}`;
-                        const store = {
-                            id: storeId,
-                            name: storeNames[s],
-                            category: catName,
-                            logo: `https://source.unsplash.com/featured/100x100/?${encodeURIComponent(catName)},logo&sig=${cat.id}${s}`,
-                            externalUrl: "#",
-                            hidden: false,
-                            description: "وصف المتجر",
-                            phone: "+966 123 456 789",
-                            address: "العنوان هنا",
-                            ownerCode: "",
-                            allowUpload: false,
-                            productDisplayMode: "grid",
-                            productDisplayCount: 10
-                        };
-                        stores[catName].push(store);
-                        const productList = [];
-                        for (let i = 1; i <= 10; i++) {
-                            const nameIndex = (i - 1) % productNamesByCategory[catName].length;
-                            let productName = productNamesByCategory[catName][nameIndex];
-                            if (i > productNamesByCategory[catName].length) {
-                                productName += ` ${Math.floor(i / productNamesByCategory[catName].length) + 1}`;
-                            }
-                            const newPrice = Math.floor(Math.random() * 300) + 50;
-                            const oldPrice = newPrice + Math.floor(Math.random() * 200) + 50;
-                            const imageUrl = `https://source.unsplash.com/featured/300x300/?${encodeURIComponent(catName)},product&sig=${i}${s}`;
-                            productList.push({
-                                id: i,
-                                name: productName,
-                                oldPrice,
-                                newPrice,
-                                image: imageUrl,
-                                link: "#"
-                            });
-                        }
-                        products[storeId] = productList;
-                    }
-                });
-                defaultData.stores = stores;
-                defaultData.products = products;
-                for (let i = 0; i < 5; i++) {
-                    defaultData.testimonials.push({
-                        name: `مستخدم ${i+1}`,
-                        image: `https://source.unsplash.com/featured/100x100/?person,face&sig=${i}`,
-                        rating: 4 + Math.floor(Math.random()*2),
-                        review: "تجربة رائعة مع هذا الموقع."
-                    });
-                }
-            })();
-
-            window.db = {
-                data: null,
-                ready: false,
-                callbacks: [],
-
-                async init() {
-                    // أولاً، جرب التحميل من الخدمة الخارجية إذا كانت مفعّلة
-                    if (loadExternalServiceConfig()) {
-                        try {
-                            const cloudData = await loadFromExternalService();
-                            if (cloudData) {
-                                this.data = cloudData;
-                                this.saveLocal(); // حفظ محلياً
-                                this.buildIndexes();
-                                this.ready = true;
-                                this.callbacks.forEach(cb => cb());
-                                return;
-                            }
-                        } catch(e) {
-                            console.warn('فشل تحميل البيانات من السحابة', e);
-                        }
-                    }
-                    // إذا لم تكن السحابة مفعلة أو فشلت، نستخدم التخزين المحلي
-                    try {
-                        if (window.indexedDB) {
-                            await this.initIndexedDB();
-                        } else {
-                            throw new Error('IndexedDB غير مدعوم');
-                        }
-                    } catch (e) {
-                        console.warn('استخدام localStorage كبديل', e);
-                        this.initLocalStorage();
-                    }
-                },
-
-                initIndexedDB() {
-                    return new Promise((resolve, reject) => {
-                        const request = indexedDB.open(DB_NAME, DB_VERSION);
-                        request.onerror = () => reject(request.error);
-                        request.onsuccess = () => {
-                            const db = request.result;
-                            const transaction = db.transaction(STORE_NAME, 'readonly');
-                            const store = transaction.objectStore(STORE_NAME);
-                            const getRequest = store.get('main');
-                            getRequest.onsuccess = () => {
-                                if (getRequest.result) {
-                                    this.data = getRequest.result;
-                                } else {
-                                    this.data = defaultData;
-                                    this.saveToIndexedDB();
-                                }
-                                this.buildIndexes();
-                                this.ready = true;
-                                this.callbacks.forEach(cb => cb());
-                                resolve();
-                            };
-                            getRequest.onerror = reject;
-                        };
-                        request.onupgradeneeded = (e) => {
-                            const db = e.target.result;
-                            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                                db.createObjectStore(STORE_NAME);
-                            }
-                        };
-                    });
-                },
-
-                saveToIndexedDB() {
-                    return new Promise((resolve, reject) => {
-                        const request = indexedDB.open(DB_NAME, DB_VERSION);
-                        request.onsuccess = () => {
-                            const db = request.result;
-                            const transaction = db.transaction(STORE_NAME, 'readwrite');
-                            const store = transaction.objectStore(STORE_NAME);
-                            const putRequest = store.put(this.data, 'main');
-                            putRequest.onsuccess = resolve;
-                            putRequest.onerror = reject;
-                        };
-                    });
-                },
-
-                initLocalStorage() {
-                    const stored = localStorage.getItem('marketsDB');
-                    if (stored) {
-                        this.data = JSON.parse(stored);
-                    } else {
-                        this.data = defaultData;
-                        localStorage.setItem('marketsDB', JSON.stringify(this.data));
-                    }
-                    this.buildIndexes();
-                    this.ready = true;
-                    this.callbacks.forEach(cb => cb());
-                },
-
-                saveLocal() {
-                    if (window.indexedDB) {
-                        this.saveToIndexedDB().catch(e => console.warn('فشل حفظ IndexedDB', e));
-                    }
-                    localStorage.setItem('marketsDB', JSON.stringify(this.data));
-                },
-
-                async save() {
-                    this.saveLocal();
-                    if (externalServiceConfig) {
-                        try {
-                            await saveToExternalService(this.data);
-                        } catch(e) {
-                            console.error('فشل الحفظ في السحابة', e);
-                        }
-                    }
-                    this.notifyUpdate();
-                },
-
-                buildIndexes() {
-                    const idx = {
-                        productsByStore: {},
-                        productsByCategory: {},
-                        storesByCategory: {}
+            const productNamesByCategory = {
+                "العطور والبخور": ["عطر مسك أبيض", "دهن عود كمبودي", "بخور عود معمول", "معطر جو فاخر", "عطر ورد دمشقي"],
+                "الورد والهدايا": ["باقة ورد أحمر", "سلة هدايا فاخرة", "دبدوب مع ورد", "شوكولاتة بلجيكية", "بطاقة معايدة"],
+                "الإكسسوارات": ["ساعة رجالية فاخرة", "نظارة شمسية", "سوار من الجلد", "قلادة فضية", "أقراط ذهبية"],
+                "الأزياء": ["تيشيرت قطني", "جينز أزرق", "فستان سهرة", "حذاء رياضي", "بدلة رسمية"],
+                "الإلكترونيات": ["آيفون 15", "سامسونج S24", "لابتوب HP", "سماعات بلوتوث", "ساعة ذكية"],
+                "الأدوات المنزلية": ["طقم أواني طبخ", "خلاط كهربائي", "ميكروويف", "مكنسة كهربائية", "غلاية ماء"]
+            };
+            const stores = {};
+            const products = {};
+            defaultData.categories.forEach(cat => {
+                const catName = cat.name;
+                const storeNames = storeNamesByCategory[catName] || [];
+                stores[catName] = [];
+                for (let s = 0; s < storeNames.length; s++) {
+                    const storeId = `store-${cat.id}-${s}`;
+                    const store = {
+                        id: storeId,
+                        name: storeNames[s],
+                        category: catName,
+                        logo: `https://source.unsplash.com/featured/100x100/?${encodeURIComponent(catName)},logo&sig=${cat.id}${s}`,
+                        externalUrl: "#",
+                        hidden: false,
+                        description: "وصف المتجر",
+                        phone: "+966 123 456 789",
+                        address: "العنوان هنا",
+                        ownerCode: "",
+                        allowUpload: false,
+                        productDisplayMode: "grid",
+                        productDisplayCount: 10
                     };
-                    for (let storeId in this.data.products) {
-                        idx.productsByStore[storeId] = this.data.products[storeId] || [];
-                    }
-                    for (let catName in this.data.stores) {
-                        idx.storesByCategory[catName] = this.data.stores[catName] || [];
-                        this.data.stores[catName].forEach(store => {
-                            if (this.data.products[store.id]) {
-                                if (!idx.productsByCategory[catName]) idx.productsByCategory[catName] = [];
-                                idx.productsByCategory[catName].push(...this.data.products[store.id]);
-                            }
+                    stores[catName].push(store);
+                    const productList = [];
+                    for (let i = 1; i <= 10; i++) {
+                        const nameIndex = (i - 1) % productNamesByCategory[catName].length;
+                        let productName = productNamesByCategory[catName][nameIndex];
+                        if (i > productNamesByCategory[catName].length) {
+                            productName += ` ${Math.floor(i / productNamesByCategory[catName].length) + 1}`;
+                        }
+                        const newPrice = Math.floor(Math.random() * 300) + 50;
+                        const oldPrice = newPrice + Math.floor(Math.random() * 200) + 50;
+                        const imageUrl = `https://source.unsplash.com/featured/300x300/?${encodeURIComponent(catName)},product&sig=${i}${s}`;
+                        productList.push({
+                            id: i,
+                            name: productName,
+                            oldPrice,
+                            newPrice,
+                            image: imageUrl,
+                            link: "#"
                         });
                     }
-                    this.data.indexes = idx;
-                },
-
-                getCategories() { return this.data.categories; },
-                getStoresByCategory(category) { return this.data.stores[category] || []; },
-                getProductsByStore(storeId) { return this.data.products[storeId] || []; },
-                getTestimonials() { return this.data.testimonials; },
-                getSettings() { return this.data.settings; },
-                getFooter() { return this.data.footer; },
-                getCarousel() { return this.data.carousel || []; },
-                getMessages() { return this.data.messages || []; },
-
-                setData(newData) {
-                    this.data = newData;
-                    this.buildIndexes();
-                    this.save();
-                    this.notifyUpdate();
-                },
-
-                notifyUpdate() {
-                    if (window.broadcastChannel) {
-                        window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-                    }
-                },
-
-                onReady(cb) {
-                    if (this.ready) cb();
-                    else this.callbacks.push(cb);
+                    products[storeId] = productList;
                 }
-            };
-            window.db.init();
-            window.broadcastChannel = new BroadcastChannel('markets_channel');
-        })();
-
-        // ================== نظام التحديث والمزامنة (BroadcastChannel + Sync) ==================
-        const VERSION_KEY = 'app_version';
-        let currentVersion = localStorage.getItem(VERSION_KEY) || '0';
-
-        function setNewVersion(newVersion) {
-            localStorage.setItem(VERSION_KEY, newVersion);
-            currentVersion = newVersion;
-            if (window.broadcastChannel) {
-                window.broadcastChannel.postMessage({ type: 'VERSION_UPDATE', version: newVersion });
-            }
-        }
-
-        async function syncWithCloud() {
-            if (loadExternalServiceConfig()) {
-                try {
-                    const cloudData = await loadFromExternalService();
-                    if (cloudData) {
-                        const currentData = window.db.data;
-                        // مقارنة بسيطة: يمكننا تحديث البيانات إذا كانت مختلفة
-                        if (JSON.stringify(currentData) !== JSON.stringify(cloudData)) {
-                            window.db.setData(cloudData);
-                            showToast('تمت مزامنة البيانات من السحابة');
-                            return true;
-                        }
-                    }
-                } catch(e) {
-                    console.warn('فشل مزامنة السحابة', e);
-                }
-            }
-            return false;
-        }
-
-        async function refreshData() {
-            const success = await syncWithCloud();
-            if (!success) {
-                // إذا لم تكن السحابة مفعلة، نعيد تحميل البيانات المحلية
-                window.db.init().then(() => {
-                    appData = window.db.data;
-                    applyDesignSettings();
-                    renderHomePage();
-                    showToast('تم تحديث البيانات من المحلي');
+            });
+            defaultData.stores = stores;
+            defaultData.products = products;
+            for (let i = 0; i < 5; i++) {
+                defaultData.testimonials.push({
+                    name: `مستخدم ${i+1}`,
+                    image: `https://source.unsplash.com/featured/100x100/?person,face&sig=${i}`,
+                    rating: 4 + Math.floor(Math.random()*2),
+                    review: "تجربة رائعة مع هذا الموقع."
                 });
             }
-            // بعد التحديث، نعيد تعيين عداد الإصدار
-            setNewVersion(Date.now().toString());
-        }
+        })();
 
-        // ================== خاصية السحب للتحديث (Pull to Refresh) ==================
-        let pullStartY = 0;
-        let pullMoveY = 0;
-        let pulling = false;
-        let refreshIndicator = null;
+        // تحميل البيانات من localStorage أو استخدام الافتراضية
+        let appData = JSON.parse(localStorage.getItem('storeData')) || defaultData;
 
-        function createRefreshIndicator() {
-            const div = document.createElement('div');
-            div.id = 'pullRefreshIndicator';
-            div.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> اسحب للتحديث';
-            document.body.appendChild(div);
-            return div;
-        }
-
-        function updateRefreshIndicator(offset) {
-            if (!refreshIndicator) return;
-            if (offset > 0 && offset <= 60) {
-                refreshIndicator.style.top = `${Math.min(0, offset - 60)}px`;
-            }
-            if (offset >= 60) {
-                refreshIndicator.innerHTML = '<i class="fas fa-arrow-down"></i> حرر للتحديث';
-                refreshIndicator.style.top = '0px';
-            } else {
-                refreshIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> اسحب للتحديث';
-            }
-        }
-
-        function hideRefreshIndicator() {
-            if (refreshIndicator) {
-                refreshIndicator.style.top = '-60px';
-                setTimeout(() => {
-                    if (refreshIndicator && refreshIndicator.parentNode) refreshIndicator.remove();
-                    refreshIndicator = null;
-                }, 300);
-            }
-        }
-
-        function onTouchStart(e) {
-            if (window.scrollY === 0) {
-                pullStartY = e.touches[0].clientY;
-                pulling = true;
-                if (!refreshIndicator) refreshIndicator = createRefreshIndicator();
-            }
-        }
-
-        function onTouchMove(e) {
-            if (!pulling) return;
-            const currentY = e.touches[0].clientY;
-            const offset = currentY - pullStartY;
-            if (offset > 0) {
-                e.preventDefault();
-                pullMoveY = offset;
-                updateRefreshIndicator(offset);
-            }
-        }
-
-        async function onTouchEnd() {
-            if (!pulling) return;
-            pulling = false;
-            if (pullMoveY >= 60) {
-                if (refreshIndicator) {
-                    refreshIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> جاري التحديث...';
-                    refreshIndicator.style.top = '0px';
-                }
-                await refreshData();
-                hideRefreshIndicator();
-                showToast('تم تحديث الموقع');
-            } else {
-                hideRefreshIndicator();
-            }
-            pullStartY = 0;
-            pullMoveY = 0;
-        }
-
-        if ('ontouchstart' in window) {
-            document.body.addEventListener('touchstart', onTouchStart, { passive: false });
-            document.body.addEventListener('touchmove', onTouchMove, { passive: false });
-            document.body.addEventListener('touchend', onTouchEnd);
-        } else {
-            let mouseStartY = 0;
-            let mousePulling = false;
-            document.body.addEventListener('mousedown', (e) => {
-                if (window.scrollY === 0 && e.button === 0) {
-                    mouseStartY = e.clientY;
-                    mousePulling = true;
-                    if (!refreshIndicator) refreshIndicator = createRefreshIndicator();
-                }
-            });
-            document.body.addEventListener('mousemove', (e) => {
-                if (!mousePulling) return;
-                const offset = e.clientY - mouseStartY;
-                if (offset > 0) {
-                    e.preventDefault();
-                    updateRefreshIndicator(offset);
-                }
-            });
-            document.body.addEventListener('mouseup', async (e) => {
-                if (!mousePulling) return;
-                const offset = e.clientY - mouseStartY;
-                if (offset >= 60) {
-                    if (refreshIndicator) {
-                        refreshIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> جاري التحديث...';
-                        refreshIndicator.style.top = '0px';
+        // ================== دوال التحميل من JSONBin ==================
+        async function fetchDataFromBin() {
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`);
+                if (response.ok) {
+                    const result = await response.json();
+                    const newData = result.record;
+                    if (JSON.stringify(appData) !== JSON.stringify(newData)) {
+                        appData = newData;
+                        renderHomePage();
+                        console.log('تم تحديث البيانات من السحابة');
                     }
-                    await refreshData();
-                    hideRefreshIndicator();
-                    showToast('تم تحديث الموقع');
                 } else {
-                    hideRefreshIndicator();
+                    console.error('فشل جلب البيانات، استخدام النسخة المحلية');
+                    appData = JSON.parse(localStorage.getItem('storeData')) || defaultData;
+                    renderHomePage();
                 }
-                mousePulling = false;
-                mouseStartY = 0;
-            });
+            } catch (e) {
+                console.error('خطأ في الاتصال، استخدام النسخة المحلية', e);
+                appData = JSON.parse(localStorage.getItem('storeData')) || defaultData;
+                renderHomePage();
+            }
         }
 
-        // ================== باقي دوال الموقع ==================
-        let appData = null;
-        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        // ================== دوال التحديث ==================
+        function showRefreshNotification() {
+            const notif = document.createElement('div');
+            notif.className = 'update-notification';
+            notif.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> تم تحديث البيانات';
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function refreshData() {
+            fetchDataFromBin();
+            showRefreshNotification();
+        }
+
+        if (sessionStorage.getItem('adminLoggedIn')) {
+            document.getElementById('adminRefreshBtn').style.display = 'block';
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'storeData') refreshData();
+        });
+
+        setInterval(fetchDataFromBin, 10000);
+
+        // ================== عداد الزوار ==================
+        let visitorCount = localStorage.getItem('visitorCount') ? parseInt(localStorage.getItem('visitorCount')) : 0;
+        if (!sessionStorage.getItem('visited')) {
+            visitorCount++;
+            localStorage.setItem('visitorCount', visitorCount);
+            sessionStorage.setItem('visited', 'true');
+        }
+        document.getElementById('visitorCount').textContent = visitorCount;
+
+        // ================== دوال الموقع الأساسية ==================
+        function applyDesignSettings() {
+            const root = document.documentElement;
+            root.style.setProperty('--category-bg', appData.design.categoryBg);
+            root.style.setProperty('--category-text', appData.design.categoryText);
+            root.style.setProperty('--category-font-size', appData.design.categoryFontSize);
+            root.style.setProperty('--store-bg', appData.design.storeBg);
+            root.style.setProperty('--store-text', appData.design.storeText);
+            root.style.setProperty('--store-font-size', appData.design.storeFontSize);
+            root.style.setProperty('--product-bg', appData.design.productBg);
+            root.style.setProperty('--product-text', appData.design.productText);
+            root.style.setProperty('--product-font-size', appData.design.productFontSize);
+            root.style.setProperty('--ad-bg', appData.design.adBg);
+            root.style.setProperty('--ad-text', appData.design.adText);
+            root.style.setProperty('--ad-font-size', appData.design.adFontSize);
+            root.style.setProperty('--general-font-size', appData.design.generalFontSize);
+            document.body.style.fontSize = appData.design.generalFontSize;
+        }
+
+        let headerInterval, currentHeaderIndex = 0;
+        function changeHeaderBackground() {
+            const header = document.getElementById('mainHeader');
+            if (appData.header.images && appData.header.images.length > 0) {
+                header.style.backgroundImage = `url('${appData.header.images[currentHeaderIndex]}')`;
+                currentHeaderIndex = (currentHeaderIndex + 1) % appData.header.images.length;
+            }
+        }
+        function startHeaderInterval() { changeHeaderBackground(); headerInterval = setInterval(changeHeaderBackground, 5000); }
+
+        let carouselInterval;
+        function startCarousel() {
+            if (carouselInterval) clearInterval(carouselInterval);
+            const carousels = document.querySelectorAll('.carousel-ad');
+            carousels.forEach(carousel => {
+                const track = carousel.querySelector('.carousel-track');
+                if (!track) return;
+                const slides = track.children;
+                if (slides.length === 0) return;
+                let currentIndex = 0;
+                const slideWidth = slides[0].getBoundingClientRect().width;
+                track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+                carouselInterval = setInterval(() => {
+                    currentIndex = (currentIndex + 1) % slides.length;
+                    track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+                }, 3000);
+            });
+        }
 
         function getCurrencySymbol() {
-            if (!appData) return "ر.س";
             const symbols = { SAR: "ر.س", USD: "$", OMR: "ر.ع.", QAR: "ر.ق", AED: "د.إ" };
             return symbols[appData.settings.currency] || "ر.س";
         }
 
         function translate(key) {
-            if (!appData) return key;
             if (appData.settings.language === 'en') {
                 const translations = {
                     'عدد الزوار': 'Visitors',
@@ -1106,8 +648,11 @@
             return key;
         }
 
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        const users = JSON.parse(localStorage.getItem('users')) || [];
         function saveUsers() { localStorage.setItem('users', JSON.stringify(users)); }
 
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
         function updateCartDisplay() {
             document.getElementById('cartCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
             const cartItemsDiv = document.getElementById('cartItems');
@@ -1129,19 +674,19 @@
             document.getElementById('cartTotal').innerHTML = `${translate('الإجمالي')}: ${total} ${getCurrencySymbol()}`;
             const actionsDiv = document.getElementById('cartActions');
             actionsDiv.innerHTML = '';
-            if (appData && appData.settings.orderMethods.whatsapp) {
+            if (appData.settings.orderMethods.whatsapp) {
                 actionsDiv.innerHTML += `<button class="whatsapp" onclick="orderViaWhatsapp()"><i class="fab fa-whatsapp"></i> ${translate('إرسال عبر واتساب')}</button>`;
             }
-            if (appData && appData.settings.orderMethods.email) {
+            if (appData.settings.orderMethods.email) {
                 actionsDiv.innerHTML += `<button class="email" onclick="orderViaEmail()"><i class="far fa-envelope"></i> ${translate('إرسال عبر البريد')}</button>`;
             }
-            if (appData && appData.settings.orderMethods.chat) {
+            if (appData.settings.orderMethods.chat) {
                 actionsDiv.innerHTML += `<button class="chat" onclick="chatWithAdmin()"><i class="fas fa-comment"></i> ${translate('محادثة مع المدير')}</button>`;
             }
         }
 
         window.addToCart = function(product) {
-            if (!appData || !appData.settings.cartEnabled) return;
+            if (!appData.settings.cartEnabled) return;
             const existing = cart.find(item => item.id === product.id && item.storeId === product.storeId);
             if (existing) existing.quantity++;
             else cart.push({ ...product, quantity: 1 });
@@ -1364,7 +909,7 @@
                 const newMessage = { name, email, subject, message, date: new Date().toISOString() };
                 if (!appData.messages) appData.messages = [];
                 appData.messages.push(newMessage);
-                window.db.setData(appData);
+                localStorage.setItem('storeData', JSON.stringify(appData));
                 alert('تم إرسال رسالتك بنجاح');
                 showHomePage();
             });
@@ -1413,59 +958,10 @@
             document.getElementById('searchPage').innerHTML = html;
         }
 
-        function applyDesignSettings() {
-            if (!appData) return;
-            const root = document.documentElement;
-            root.style.setProperty('--category-bg', appData.design.categoryBg);
-            root.style.setProperty('--category-text', appData.design.categoryText);
-            root.style.setProperty('--category-font-size', appData.design.categoryFontSize);
-            root.style.setProperty('--store-bg', appData.design.storeBg);
-            root.style.setProperty('--store-text', appData.design.storeText);
-            root.style.setProperty('--store-font-size', appData.design.storeFontSize);
-            root.style.setProperty('--product-bg', appData.design.productBg);
-            root.style.setProperty('--product-text', appData.design.productText);
-            root.style.setProperty('--product-font-size', appData.design.productFontSize);
-            root.style.setProperty('--ad-bg', appData.design.adBg);
-            root.style.setProperty('--ad-text', appData.design.adText);
-            root.style.setProperty('--ad-font-size', appData.design.adFontSize);
-            root.style.setProperty('--general-font-size', appData.design.generalFontSize);
-            document.body.style.fontSize = appData.design.generalFontSize;
-        }
-
-        let headerInterval, currentHeaderIndex = 0;
-        function changeHeaderBackground() {
-            const header = document.getElementById('mainHeader');
-            if (appData && appData.header.images && appData.header.images.length > 0) {
-                header.style.backgroundImage = `url('${appData.header.images[currentHeaderIndex]}')`;
-                currentHeaderIndex = (currentHeaderIndex + 1) % appData.header.images.length;
-            }
-        }
-        function startHeaderInterval() { changeHeaderBackground(); headerInterval = setInterval(changeHeaderBackground, 5000); }
-
-        let carouselInterval;
-        function startCarousel() {
-            if (carouselInterval) clearInterval(carouselInterval);
-            const carousels = document.querySelectorAll('.carousel-ad');
-            carousels.forEach(carousel => {
-                const track = carousel.querySelector('.carousel-track');
-                if (!track) return;
-                const slides = track.children;
-                if (slides.length === 0) return;
-                let currentIndex = 0;
-                const slideWidth = slides[0].getBoundingClientRect().width;
-                track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
-                carouselInterval = setInterval(() => {
-                    currentIndex = (currentIndex + 1) % slides.length;
-                    track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
-                }, 3000);
-            });
-        }
-
         function renderHomePage() {
-            if (!appData) return;
             document.getElementById('headerTitle').textContent = appData.header.title;
             document.getElementById('headerSubtitle').textContent = appData.header.subtitle;
-            document.getElementById('tickerContent').innerHTML = appData.ticker.map(t => `<span>${DOMPurify.sanitize(t)}</span>`).join('');
+            document.getElementById('tickerContent').innerHTML = appData.ticker.map(t => `<span>${t}</span>`).join('');
 
             if (appData.settings.showSaudiFlag) document.getElementById('saudiFlagContainer').style.display = 'inline';
             else document.getElementById('saudiFlagContainer').style.display = 'none';
@@ -1477,7 +973,7 @@
 
             if (appData.settings.contests && appData.settings.contests.length > 0) {
                 document.getElementById('contestsBar').style.display = 'block';
-                const content = appData.settings.contests.map(c => `<span class="contest-item"><i class="fas fa-trophy"></i> ${DOMPurify.sanitize(c.name)} - ${DOMPurify.sanitize(c.description)} (ينتهي: ${DOMPurify.sanitize(c.endDate)})</span>`).join('');
+                const content = appData.settings.contests.map(c => `<span class="contest-item"><i class="fas fa-trophy"></i> ${c.name} - ${c.description} (ينتهي: ${c.endDate})</span>`).join('');
                 document.getElementById('contestsContent').innerHTML = content;
             } else document.getElementById('contestsBar').style.display = 'none';
 
@@ -1507,7 +1003,7 @@
 
                 let adHtml = '';
                 if (cat.adEnabled && cat.adText) {
-                    adHtml = `<div class="category-ticker"><div class="category-ticker-content">${DOMPurify.sanitize(cat.adText)}</div></div>`;
+                    adHtml = `<div class="category-ticker"><div class="category-ticker-content">${cat.adText}</div></div>`;
                 }
 
                 section.innerHTML = `
@@ -1734,7 +1230,7 @@
             if (code !== store.ownerCode) { alert('الرمز السري غير صحيح'); return; }
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
-                reader.onload = e => { store.logo = e.target.result; window.db.setData(appData); document.getElementById(`storeLogo-${storeId}`).src = e.target.result; alert('تم رفع الشعار بنجاح'); };
+                reader.onload = e => { store.logo = e.target.result; localStorage.setItem('storeData', JSON.stringify(appData)); document.getElementById(`storeLogo-${storeId}`).src = e.target.result; alert('تم رفع الشعار بنجاح'); };
                 reader.readAsDataURL(fileInput.files[0]);
             }
         };
@@ -1766,6 +1262,7 @@
             document.getElementById('profilePage').classList.add('hidden');
             document.getElementById('contactPage').classList.add('hidden');
             closeProductModal();
+            refreshData();
         }
 
         window.addEventListener('hashchange', () => {
@@ -1780,51 +1277,17 @@
             } else showHomePage();
         });
 
-        window.broadcastChannel.onmessage = (event) => {
-            if (event.data.type === 'DB_UPDATE') {
-                console.log('تحديث ورد من لوحة التحكم، إعادة تحميل البيانات');
-                window.db.init().then(() => {
-                    appData = window.db.data;
-                    applyDesignSettings();
-                    renderHomePage();
-                    showToast('تم تحديث البيانات');
-                });
-            } else if (event.data.type === 'VERSION_UPDATE') {
-                currentVersion = event.data.version;
-                refreshData();
-            }
-        };
+        if (window.location.search.includes('preview')) refreshData();
 
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'update-notification';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        applyDesignSettings();
+        startHeaderInterval();
+        fetchDataFromBin();
+        if (window.location.hash) window.dispatchEvent(new Event('hashchange'));
+
+        if (appData.settings?.language === 'en') {
+            document.documentElement.lang = 'en';
+            document.documentElement.dir = 'ltr';
         }
-
-        window.db.onReady(() => {
-            appData = window.db.data;
-            applyDesignSettings();
-            startHeaderInterval();
-            renderHomePage();
-            updateCartDisplay();
-            if (window.location.hash) window.dispatchEvent(new Event('hashchange'));
-            currentVersion = localStorage.getItem(VERSION_KEY) || '0';
-        });
-
-        window.refreshData = async function() {
-            await refreshData();
-        };
-
-        // عداد الزوار
-        let visitorCount = localStorage.getItem('visitorCount') ? parseInt(localStorage.getItem('visitorCount')) : 0;
-        if (!sessionStorage.getItem('visited')) {
-            visitorCount++;
-            localStorage.setItem('visitorCount', visitorCount);
-            sessionStorage.setItem('visited', 'true');
-        }
-        document.getElementById('visitorCount').textContent = visitorCount;
     </script>
 </body>
 </html>
