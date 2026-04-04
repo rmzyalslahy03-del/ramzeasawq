@@ -15,7 +15,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* جميع الأنماط كما هي في الإصدار السابق */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background-color: #f4f7fc; color: #1e293b; line-height: 1.6; user-select: none; }
 
@@ -119,12 +118,6 @@
         .category-ticker { background: linear-gradient(90deg, #fbbf24, #f59e0b); color: #0f172a; padding: 0.5rem; font-weight: 700; font-size: 0.9rem; overflow: hidden; white-space: nowrap; border-radius: 40px; margin: 10px 0; }
         .category-ticker-content { display: inline-block; animation: ticker 20s linear infinite; padding-left: 100%; }
 
-        .demo-products { margin: 20px 0; padding: 20px; border-radius: 30px; background: rgba(255,255,255,0.7); backdrop-filter: blur(5px); }
-        .demo-products-track { display: flex; gap: 15px; overflow-x: auto; }
-        .demo-product-item { flex: 0 0 140px; background: white; border-radius: 20px; padding: 10px; text-align: center; transition: transform 0.3s, box-shadow 0.3s; }
-        .demo-product-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .demo-product-item img { width: 100px; height: 100px; border-radius: 15px; object-fit: cover; }
-
         .stores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px; }
         .stores-horizontal { overflow-x: auto; white-space: nowrap; padding: 15px 0; margin-bottom: 20px; }
         .stores-track { display: inline-flex; gap: 15px; }
@@ -148,7 +141,7 @@
         .products-track { display: inline-flex; gap: 15px; }
         .product-item { width: 150px; display: inline-block; text-align: center; background: var(--product-bg); border-radius: 16px; padding: 10px; border: 1px solid #edf2f7; white-space: normal; color: var(--product-text); transition: transform 0.3s, box-shadow 0.3s; position: relative; cursor: pointer; }
         .product-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .product-item img { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; }
+        .product-item img { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; loading: lazy; }
         .product-name { font-weight: 600; font-size: var(--product-font-size); margin: 8px 0 4px; height: 2.5em; overflow: hidden; }
         .price-container { display: flex; justify-content: center; gap: 8px; align-items: baseline; margin: 5px 0; }
         .old-price { color: #94a3b8; text-decoration: line-through; font-size: 0.8rem; }
@@ -185,7 +178,6 @@
 
         .trust-badges { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px 5%; background: #f8fafc; }
         .trust-badges img { height: 40px; width: auto; transition: transform 0.3s; }
-        .trust-badges img:hover { transform: scale(1.1); }
 
         .footer-info { background: white; border-radius: 40px; padding: 2rem 5%; margin: 2rem 5%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; }
         .social-icons { display: flex; gap: 15px; }
@@ -238,6 +230,9 @@
         #pullRefreshIndicator { position: fixed; top: -60px; left: 0; width: 100%; height: 60px; background: #fbbf24; color: #0f172a; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: top 0.2s ease; z-index: 10000; font-family: 'Cairo', sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         body { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         img, a, button { -webkit-tap-highlight-color: transparent; }
+        #globalSpinner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; }
+        .spinner-large { width: 50px; height: 50px; border: 5px solid #fbbf24; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
     <script>
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
@@ -272,7 +267,7 @@
         const SUPABASE_ANON_KEY = "sb_publishable_nc3_YZT-EVwa-bPfqqnFpA_ko2q-z-L";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================== البيانات الافتراضية ==================
+        // ================== البيانات الافتراضية (للاستخدام الأولي فقط) ==================
         const defaultData = {
             "header": {
                 "title": "مجمع أسواق ريادة المستهلك",
@@ -425,9 +420,27 @@
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-        // ================== دوال Supabase الأساسية ==================
+        // ================== شاشة التحميل ==================
+        function showLoadingSpinner() {
+            let spinner = document.getElementById('globalSpinner');
+            if (!spinner) {
+                spinner = document.createElement('div');
+                spinner.id = 'globalSpinner';
+                spinner.innerHTML = '<div class="spinner-large"></div><div>جاري تحميل الموقع...</div>';
+                document.body.appendChild(spinner);
+            }
+            spinner.style.display = 'flex';
+        }
+        function hideLoadingSpinner() {
+            const spinner = document.getElementById('globalSpinner');
+            if (spinner) spinner.style.display = 'none';
+        }
+
+        // ================== دوال Supabase المحسّنة (بأسماء الأعمدة lowercase) ==================
         async function loadFromSupabase() {
+            showLoadingSpinner();
             try {
+                // 1. الإعدادات
                 const { data: settings, error: settingsErr } = await supabaseClient
                     .from('settings')
                     .select('data')
@@ -438,82 +451,89 @@
                     await seedSupabase();
                     return await loadFromSupabase();
                 }
-                const [categoriesRes, storesRes, productsRes, testimonialsRes, carouselRes, messagesRes] = await Promise.all([
-                    supabaseClient.from('categories').select('*'),
-                    supabaseClient.from('stores').select('*'),
-                    supabaseClient.from('products').select('*'),
-                    supabaseClient.from('testimonials').select('*'),
-                    supabaseClient.from('carousel').select('*'),
-                    supabaseClient.from('messages').select('*')
+
+                // 2. الفئات (أعمدة lowercase)
+                const { data: categoriesRaw, error: catErr } = await supabaseClient
+                    .from('categories')
+                    .select('id,name,icon,slug,color,featuredimage,indeximage,showinindex,indexorder,adtext,adenabled');
+                if (catErr) throw catErr;
+                const categories = categoriesRaw.map(c => ({
+                    id: c.id, name: c.name, icon: c.icon, slug: c.slug, color: c.color,
+                    featuredImage: c.featuredimage, indexImage: c.indeximage,
+                    showInIndex: c.showinindex, indexOrder: c.indexorder,
+                    adText: c.adtext, adEnabled: c.adenabled
+                }));
+
+                // 3. المتاجر (أعمدة lowercase)
+                const { data: storesRaw, error: storeErr } = await supabaseClient
+                    .from('stores')
+                    .select('id,category,name,logo,externalurl,hidden,description,phone,address,ownercode,allowupload,productdisplaymode,productdisplaycount,numstrips');
+                if (storeErr) throw storeErr;
+                const storesFixed = storesRaw.map(s => ({
+                    id: s.id, category: s.category, name: s.name, logo: s.logo,
+                    externalUrl: s.externalurl, hidden: s.hidden, description: s.description,
+                    phone: s.phone, address: s.address, ownerCode: s.ownercode,
+                    allowUpload: s.allowupload, productDisplayMode: s.productdisplaymode,
+                    productDisplayCount: s.productdisplaycount, numStrips: s.numstrips
+                }));
+
+                // 4. المنتجات (أعمدة lowercase)
+                const { data: productsRaw, error: prodErr } = await supabaseClient
+                    .from('products')
+                    .select('id,storeid,name,oldprice,newprice,image,link')
+                    .limit(300);
+                if (prodErr) throw prodErr;
+                const productsFixed = productsRaw.map(p => ({
+                    id: p.id, storeId: p.storeid, name: p.name,
+                    oldPrice: p.oldprice, newPrice: p.newprice,
+                    image: p.image, link: p.link
+                }));
+
+                // 5. التقييمات والإعلانات والرسائل
+                const [testimonialsRes, carouselRes, messagesRes] = await Promise.all([
+                    supabaseClient.from('testimonials').select('name,image,rating,review'),
+                    supabaseClient.from('carousel').select('id,name,link,image,order,active'),
+                    supabaseClient.from('messages').select('id,name,email,subject,message,date')
                 ]);
-                if (categoriesRes.error) throw categoriesRes.error;
-                if (storesRes.error) throw storesRes.error;
-                if (productsRes.error) throw productsRes.error;
+
+                // إعادة بناء الهيكل
                 const storesMap = {};
-                storesRes.data.forEach(store => {
+                storesFixed.forEach(store => {
                     if (!storesMap[store.category]) storesMap[store.category] = [];
                     storesMap[store.category].push(store);
                 });
                 const productsMap = {};
-                productsRes.data.forEach(prod => {
+                productsFixed.forEach(prod => {
                     if (!productsMap[prod.storeId]) productsMap[prod.storeId] = [];
                     productsMap[prod.storeId].push(prod);
                 });
+
                 appData = {
                     header: settings.data.header,
                     ticker: settings.data.ticker,
                     design: settings.data.design,
-                    categories: categoriesRes.data,
+                    categories: categories,
                     stores: storesMap,
                     products: productsMap,
-                    testimonials: testimonialsRes.data,
+                    testimonials: testimonialsRes.data || [],
                     footer: settings.data.footer,
                     settings: settings.data.settings,
-                    carousel: carouselRes.data,
-                    messages: messagesRes.data
+                    carousel: carouselRes.data || [],
+                    messages: messagesRes.data || []
                 };
+
+                localStorage.setItem('marketsDB', JSON.stringify(appData));
                 await syncLocalUsers();
                 return true;
             } catch (err) {
                 console.error(err);
-                showToast("خطأ في تحميل البيانات من Supabase، سيتم استخدام النسخة المحلية");
+                showToast("خطأ في تحميل البيانات، يتم استخدام النسخة المحلية");
                 const stored = localStorage.getItem('marketsDB');
                 if (stored) appData = JSON.parse(stored);
                 else appData = enhanceData(JSON.parse(JSON.stringify(defaultData)));
                 return false;
-            }
-        }
-
-        async function saveToSupabase() {
-            if (!appData) return;
-            try {
-                await supabaseClient.from('settings').upsert({
-                    id: 'main',
-                    data: {
-                        header: appData.header,
-                        ticker: appData.ticker,
-                        design: appData.design,
-                        footer: appData.footer,
-                        settings: appData.settings
-                    }
-                });
-                for (const cat of appData.categories) await supabaseClient.from('categories').upsert(cat);
-                const allStores = [];
-                for (const cat in appData.stores) allStores.push(...appData.stores[cat]);
-                for (const store of allStores) await supabaseClient.from('stores').upsert(store);
-                const allProducts = [];
-                for (const storeId in appData.products) {
-                    for (const prod of appData.products[storeId]) allProducts.push({ ...prod, storeId });
-                }
-                for (const prod of allProducts) await supabaseClient.from('products').upsert(prod);
-                for (const t of appData.testimonials) await supabaseClient.from('testimonials').upsert(t);
-                for (const ad of appData.carousel) await supabaseClient.from('carousel').upsert(ad);
-                for (const msg of appData.messages) await supabaseClient.from('messages').upsert(msg);
-                localStorage.setItem('marketsDB', JSON.stringify(appData));
-                if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            } catch (err) {
-                console.error(err);
-                showToast("خطأ في حفظ البيانات");
+            } finally {
+                hideLoadingSpinner();
             }
         }
 
@@ -551,36 +571,67 @@
 
         async function seedSupabase() {
             const enhanced = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-            await supabaseClient.from('settings').insert({
-                id: 'main',
-                data: {
-                    header: enhanced.header,
-                    ticker: enhanced.ticker,
-                    design: enhanced.design,
-                    footer: enhanced.footer,
-                    settings: enhanced.settings
+            // إدراج البيانات فقط إذا كانت الجداول فارغة
+            const { count: settingsCount } = await supabaseClient.from('settings').select('*', { count: 'exact', head: true });
+            if (settingsCount === 0) {
+                await supabaseClient.from('settings').insert({
+                    id: 'main',
+                    data: {
+                        header: enhanced.header,
+                        ticker: enhanced.ticker,
+                        design: enhanced.design,
+                        footer: enhanced.footer,
+                        settings: enhanced.settings
+                    }
+                });
+            }
+            const { count: catCount } = await supabaseClient.from('categories').select('*', { count: 'exact', head: true });
+            if (catCount === 0) {
+                for (const cat of enhanced.categories) {
+                    await supabaseClient.from('categories').insert({
+                        id: cat.id, name: cat.name, icon: cat.icon, slug: cat.slug, color: cat.color,
+                        featuredimage: cat.featuredImage, indeximage: cat.indexImage,
+                        showinindex: cat.showInIndex, indexorder: cat.indexOrder,
+                        adtext: cat.adText, adenabled: cat.adEnabled
+                    });
                 }
-            });
-            for (const cat of enhanced.categories) await supabaseClient.from('categories').insert(cat);
-            for (const catName in enhanced.stores) {
-                for (const store of enhanced.stores[catName]) await supabaseClient.from('stores').insert(store);
             }
-            for (const storeId in enhanced.products) {
-                for (const prod of enhanced.products[storeId]) await supabaseClient.from('products').insert({ ...prod, storeId });
+            const { count: storeCount } = await supabaseClient.from('stores').select('*', { count: 'exact', head: true });
+            if (storeCount === 0) {
+                for (const catName in enhanced.stores) {
+                    for (const store of enhanced.stores[catName]) {
+                        await supabaseClient.from('stores').insert({
+                            id: store.id, category: store.category, name: store.name, logo: store.logo,
+                            externalurl: store.externalUrl, hidden: store.hidden, description: store.description,
+                            phone: store.phone, address: store.address, ownercode: store.ownerCode,
+                            allowupload: store.allowUpload, productdisplaymode: store.productDisplayMode,
+                            productdisplaycount: store.productDisplayCount, numstrips: store.numStrips
+                        });
+                    }
+                }
             }
-            for (const t of enhanced.testimonials) await supabaseClient.from('testimonials').insert(t);
-            for (const ad of enhanced.carousel) await supabaseClient.from('carousel').insert(ad);
-            showToast("✅ تم تهيئة قاعدة البيانات بنجاح");
+            const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
+            if (prodCount === 0) {
+                for (const storeId in enhanced.products) {
+                    for (const prod of enhanced.products[storeId]) {
+                        await supabaseClient.from('products').insert({
+                            id: prod.id, storeid: storeId, name: prod.name,
+                            oldprice: prod.oldPrice, newprice: prod.newPrice,
+                            image: prod.image, link: prod.link
+                        });
+                    }
+                }
+            }
+            const { count: testCount } = await supabaseClient.from('testimonials').select('*', { count: 'exact', head: true });
+            if (testCount === 0) {
+                for (const t of enhanced.testimonials) await supabaseClient.from('testimonials').insert(t);
+            }
+            const { count: carCount } = await supabaseClient.from('carousel').select('*', { count: 'exact', head: true });
+            if (carCount === 0) {
+                for (const ad of enhanced.carousel) await supabaseClient.from('carousel').insert(ad);
+            }
+            showToast("تم إدراج البيانات التجريبية (قاعدة البيانات كانت فارغة)");
         }
-
-        let dbReady = false;
-        let dbCallbacks = [];
-        async function initDB() {
-            await loadFromSupabase();
-            dbReady = true;
-            dbCallbacks.forEach(cb => cb());
-        }
-        function onDBReady(cb) { if (dbReady) cb(); else dbCallbacks.push(cb); }
 
         // ================== دوال العملة والترجمة ==================
         function getCurrencySymbol() {
@@ -733,7 +784,6 @@
             localStorage.setItem('currentUser', JSON.stringify(newUser));
             document.getElementById('registerModal').remove();
             renderProfilePage();
-            // مزامنة مع supabase
             supabaseClient.from('users').insert({
                 username: newUser.username,
                 password: newUser.password,
@@ -801,7 +851,7 @@
             document.getElementById('homePage').classList.add('hidden');
             document.getElementById('contactPage').classList.remove('hidden');
             document.getElementById('contactPage').innerHTML = `<div class="contact-form"><h2>اتصل بنا</h2><form id="contactForm"><input type="text" id="contactName" placeholder="الاسم" required><input type="email" id="contactEmail" placeholder="البريد الإلكتروني" required><input type="text" id="contactSubject" placeholder="الموضوع" required><textarea id="contactMessage" rows="5" placeholder="الرسالة" required></textarea><button type="submit">إرسال</button></form></div>`;
-            document.getElementById('contactForm').addEventListener('submit', (e) => {
+            document.getElementById('contactForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const name = document.getElementById('contactName').value;
                 const email = document.getElementById('contactEmail').value;
@@ -810,7 +860,7 @@
                 const newMessage = { name, email, subject, message, date: new Date().toISOString() };
                 if (!appData.messages) appData.messages = [];
                 appData.messages.push(newMessage);
-                saveToSupabase();
+                await supabaseClient.from('messages').insert(newMessage);
                 alert('تم إرسال رسالتك بنجاح');
                 showHomePage();
             });
@@ -981,6 +1031,7 @@
             footerSection.innerHTML = `<div class="contact-section"><h3>${translate('تواصل معنا')}</h3><p>${translate('البريد الإلكتروني')}: ${appData.footer.email}</p><p>${translate('الهاتف')}: ${appData.footer.phone}</p><div class="social-icons">${appData.footer.social.map(s => `<a href="${s.url}" target="_blank"><i class="${s.icon}"></i></a>`).join('')}</div><button onclick="showContactPage()" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:40px; margin-top:10px; cursor:pointer;">اتصل بنا</button></div><div class="payment-section"><h3>${translate('خدمات الدفع')}</h3><p>${translate('طرق دفع آمنة ومتعددة')}</p><div class="payment-methods">${appData.footer.payments.map(p => `<i class="${p}"></i>`).join('')}</div></div>`;
             updateCartDisplay();
             attachLongPressShare();
+            document.querySelectorAll('img').forEach(img => img.setAttribute('loading', 'lazy'));
         }
 
         function attachLongPressShare() {
@@ -1032,7 +1083,6 @@
             categoryPage.innerHTML = `<div style="padding:2rem;"><button class="back-home-btn" onclick="showHomePage()">${translate('العودة للرئيسية')}</button><h2 style="color:${cat.color};">${cat.name}</h2>${horizontalStores ? '<div class="stores-horizontal"><div class="stores-track">' + horizontalStores + '</div></div>' : ''}<div class="stores-grid">${gridStores || '<p>لا توجد متاجر في هذه الفئة</p>'}</div></div>`;
         }
 
-        // عرض صفحة المتجر مع أشرطة أفقية متعددة ومنتجات تجريبية
         function showStorePage(storeId) {
             let store = null;
             for (let cat in appData.stores) {
@@ -1067,7 +1117,7 @@
                 const categoriesForDemo = ["عطر", "هدية", "إكسسوار", "ملابس", "جهاز إلكتروني"];
                 const demoName = `${categoriesForDemo[stripIndex % categoriesForDemo.length]} تجريبي ${posInStrip + 1}`;
                 const randomPrice = Math.floor(Math.random() * 400) + 50;
-                const demoImage = `https://picsum.photos/seed/demo_${stripIndex}_${posInStrip}/300/300`;
+                const demoImage = `https://picsum.photos/seed/demo_${storeId}_${stripIndex}_${posInStrip}/300/300`;
                 return {
                     id: `demo_${storeId}_${stripIndex}_${posInStrip}`,
                     name: demoName,
@@ -1156,7 +1206,8 @@
                 const reader = new FileReader();
                 reader.onload = async e => {
                     store.logo = e.target.result;
-                    await saveToSupabase();
+                    await supabaseClient.from('stores').update({ logo: store.logo }).eq('id', storeId);
+                    localStorage.setItem('marketsDB', JSON.stringify(appData));
                     document.getElementById(`storeLogo-${storeId}`).src = e.target.result;
                     alert('تم رفع الشعار بنجاح');
                 };
@@ -1248,7 +1299,7 @@
                 showToast("تم تحميل الموقع بنجاح");
             } catch (err) {
                 console.error("فشل التهيئة:", err);
-                showToast("حدث خطأ في تحميل البيانات، يتم استخدام النسخة المحلية");
+                showToast("حدث خطأ، يتم استخدام النسخة المحلية");
                 const stored = localStorage.getItem('marketsDB');
                 if (stored) appData = JSON.parse(stored);
                 else appData = enhanceData(JSON.parse(JSON.stringify(defaultData)));
