@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- تحميل مكتبة Supabase أولاً -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
@@ -339,9 +338,9 @@
     </button>
 
     <script>
-        // ================== تعريف عميل Supabase بعد تحميل المكتبة ==================
-        const SUPABASE_URL = "https://mtsebbgjchuzjddblywl.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_nc3_YZT-EVwa-bPfqqnFpA_ko2q-z-L";
+        // ================== Supabase Client (تم التحديث بالإعدادات الجديدة) ==================
+        const SUPABASE_URL = "https://rltdptxnpotfymjqtsvp.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_SBYmfZaJmMsBzbIpDWvh7w_upcmdCNo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ================== البيانات الافتراضية ==================
@@ -707,7 +706,7 @@
 
         function sanitizeText(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-        // ================== دوال عرض القوائم (مختصرة لتوفير المساحة) ==================
+        // ================== دوال عرض القوائم ==================
         function refreshAllLists() {
             populateCategoriesList();
             if (document.getElementById('storeCategorySelect').value) populateStoresList(document.getElementById('storeCategorySelect').value);
@@ -1091,7 +1090,7 @@
             }
         };
 
-        // ================== أزرار الإضافة والتحديث (مع إضافة changedTables) ==================
+        // ================== أزرار الإضافة والتحديث ==================
         document.getElementById('addCategoryBtn').addEventListener('click', async () => {
             const name = document.getElementById('categoryName').value;
             if (!name) return alert('اسم الفئة مطلوب');
@@ -1485,7 +1484,6 @@
             showToast('✅ تم إعادة تعيين العداد');
         });
 
-        // استيراد وتصدير JSON
         document.getElementById('exportJsonBtn').addEventListener('click', () => {
             const dataStr = JSON.stringify(appData, null, 2);
             const blob = new Blob([dataStr], {type: "application/json"});
@@ -1529,7 +1527,6 @@
             reader.readAsText(file);
         });
 
-        // رفع الصور
         function handleImageUpload(fileInput, targetInputId) {
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
@@ -1571,7 +1568,6 @@
         });
         document.getElementById('storePermissionSelect').addEventListener('change', () => populateStorePermissions());
 
-        // تسجيل الدخول
         window.checkLogin = async function() {
             const code = document.getElementById('secretCodeInput').value;
             if (code === "202122") {
