@@ -47,6 +47,8 @@
         .spinner { display: none; width: 20px; height: 20px; border: 2px solid #fff; border-top: 2px solid #fbbf24; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+        .error-banner { background: #ef4444; color: white; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
+        .retry-btn { background: white; color: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; margin-top: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -59,9 +61,13 @@
     </div>
 
     <div class="admin-container" id="adminContent" style="display: none;">
-        <div class="auto-save-badge" id="autoSaveBadge">✓ جميع التغييرات محفوظة</div>
+        <div class="auto-save-badge" id="autoSaveBadge">✓ جميع التغييرات محفوظة على Supabase</div>
         <a href="index.html" class="back-link">← العودة للموقع</a>
-        <h1>لوحة التحكم (Supabase) - محسّنة</h1>
+        <h1>لوحة التحكم (Supabase) - النسخة السحابية الكاملة</h1>
+
+        <div id="connectionStatus" style="background: #10b981; padding: 10px; border-radius: 20px; text-align: center; margin-bottom: 20px;">
+            ✅ متصل بقاعدة البيانات السحابية (Supabase)
+        </div>
 
         <div class="admin-grid">
             <!-- عداد الزوار -->
@@ -81,6 +87,7 @@
                     <button id="importJsonBtn"><i class="fas fa-upload"></i> استيراد JSON</button>
                     <input type="file" id="importFile" accept=".json">
                 </div>
+                <p style="font-size:12px; color:#94a3b8; margin-top:10px;">⚠️ الاستيراد سيزيل البيانات الحالية ويستبدلها بالملف المرفوع</p>
             </div>
 
             <!-- نشر التحديثات -->
@@ -89,7 +96,7 @@
                 <button id="publishBtn" style="background:#10b981; color:white; border:none; padding:15px; border-radius:40px; font-weight:700; cursor:pointer; width:100%;">
                     <i class="fas fa-globe"></i> نشر التحديثات إلى جميع الزوار
                 </button>
-                <p style="margin-top:10px; color:#94a3b8;">عند الضغط، سيتم حفظ البيانات وإخطار جميع الزوار بالتحديث.</p>
+                <p style="margin-top:10px; color:#94a3b8;">سيتم حفظ جميع التغييرات في قاعدة البيانات السحابية فوراً</p>
             </div>
 
             <!-- الإعدادات العامة -->
@@ -286,7 +293,7 @@
             <div class="admin-card">
                 <h2>تقييمات العملاء</h2>
                 <div class="admin-form" id="testimonialForm">
-                    <input type="hidden" id="editTestimonialIndex">
+                    <input type="hidden" id="editTestimonialId">
                     <input type="text" id="testimonialName" placeholder="الاسم" required>
                     <label>الصورة</label><input type="text" id="testimonialImage">
                     <input type="file" id="testimonialImageFile" accept="image/*">
@@ -338,12 +345,12 @@
     </button>
 
     <script>
-        // ================== Supabase Client (تم التحديث بالإعدادات الجديدة) ==================
+        // ================== Supabase Client ==================
         const SUPABASE_URL = "https://rltdptxnpotfymjqtsvp.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_SBYmfZaJmMsBzbIpDWvh7w_upcmdCNo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================== البيانات الافتراضية ==================
+        // ================== البيانات الافتراضية (تستخدم فقط عند التهيئة الأولية) ==================
         const defaultData = {
             header: {
                 title: "مجمع أسواق ريادة المستهلك",
@@ -427,9 +434,9 @@
                 ]
             },
             testimonials: [
-                { name: "مستخدم 1", image: "https://picsum.photos/seed/user0/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
-                { name: "مستخدم 2", image: "https://picsum.photos/seed/user1/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
-                { name: "مستخدم 3", image: "https://picsum.photos/seed/user2/100/100", rating: 4, review: "تجربة رائعة مع هذا الموقع." }
+                { id: 1, name: "مستخدم 1", image: "https://picsum.photos/seed/user0/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
+                { id: 2, name: "مستخدم 2", image: "https://picsum.photos/seed/user1/100/100", rating: 5, review: "تجربة رائعة مع هذا الموقع." },
+                { id: 3, name: "مستخدم 3", image: "https://picsum.photos/seed/user2/100/100", rating: 4, review: "تجربة رائعة مع هذا الموقع." }
             ],
             footer: {
                 email: "ramzealsalhy@gmail.com",
@@ -496,24 +503,32 @@
         let currentEditProductStoreId = null;
         let currentEditProductId = null;
         let currentEditCarouselId = null;
-        let currentEditTestimonialIndex = null;
+        let currentEditTestimonialId = null;
 
         let changedTables = new Set();
         let isSaving = false;
 
-        // ================== دوال Supabase المحسّنة ==================
+        // ================== دوال Supabase (بدون localStorage) ==================
         async function loadFromSupabase() {
             try {
+                // التحقق من الاتصال أولاً
+                const { data: test, error: testErr } = await supabaseClient.from('settings').select('id').limit(1);
+                if (testErr) throw new Error("فشل الاتصال بقاعدة البيانات");
+
                 const { data: settings, error: settingsErr } = await supabaseClient
                     .from('settings')
                     .select('data')
                     .eq('id', 'main')
                     .single();
+                    
                 if (settingsErr && settingsErr.code !== 'PGRST116') throw settingsErr;
+                
+                // إذا لم توجد بيانات، قم بتهيئة قاعدة البيانات
                 if (!settings) {
                     await seedSupabase();
                     return await loadFromSupabase();
                 }
+                
                 const [categoriesRes, storesRes, productsRes, testimonialsRes, carouselRes, messagesRes] = await Promise.all([
                     supabaseClient.from('categories').select('*'),
                     supabaseClient.from('stores').select('*'),
@@ -522,19 +537,23 @@
                     supabaseClient.from('carousel').select('*'),
                     supabaseClient.from('messages').select('*')
                 ]);
+                
                 if (categoriesRes.error) throw categoriesRes.error;
                 if (storesRes.error) throw storesRes.error;
                 if (productsRes.error) throw productsRes.error;
+                
                 const storesMap = {};
                 storesRes.data.forEach(store => {
                     if (!storesMap[store.category]) storesMap[store.category] = [];
                     storesMap[store.category].push(store);
                 });
+                
                 const productsMap = {};
                 productsRes.data.forEach(prod => {
                     if (!productsMap[prod.storeId]) productsMap[prod.storeId] = [];
                     productsMap[prod.storeId].push(prod);
                 });
+                
                 appData = {
                     header: settings.data.header,
                     ticker: settings.data.ticker,
@@ -548,25 +567,31 @@
                     carousel: carouselRes.data,
                     messages: messagesRes.data
                 };
+                
                 await syncLocalUsers();
+                document.getElementById('connectionStatus').innerHTML = '✅ متصل بقاعدة البيانات السحابية (Supabase)';
+                document.getElementById('connectionStatus').style.background = '#10b981';
                 return true;
+                
             } catch (err) {
-                console.error(err);
-                showToast("خطأ في تحميل البيانات من Supabase، سيتم استخدام النسخة المحلية");
-                const stored = localStorage.getItem('marketsDB');
-                if (stored) appData = JSON.parse(stored);
-                else appData = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-                return false;
+                console.error("خطأ في الاتصال بـ Supabase:", err);
+                document.getElementById('connectionStatus').innerHTML = '❌ فشل الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.';
+                document.getElementById('connectionStatus').style.background = '#ef4444';
+                showToast("⚠️ لا يمكن الاتصال بقاعدة البيانات. تحقق من اتصال الإنترنت.");
+                throw err;
             }
         }
 
         async function saveToSupabase() {
             if (!appData || isSaving) return;
             if (changedTables.size === 0) return;
+            
             isSaving = true;
             showSpinner(true);
+            
             try {
                 const promises = [];
+                
                 if (changedTables.has('settings')) {
                     promises.push(supabaseClient.from('settings').upsert({
                         id: 'main',
@@ -579,11 +604,13 @@
                         }
                     }));
                 }
+                
                 if (changedTables.has('categories')) {
                     for (const cat of appData.categories) {
                         promises.push(supabaseClient.from('categories').upsert(cat));
                     }
                 }
+                
                 if (changedTables.has('stores')) {
                     const allStores = [];
                     for (const cat in appData.stores) allStores.push(...appData.stores[cat]);
@@ -591,6 +618,7 @@
                         promises.push(supabaseClient.from('stores').upsert(store));
                     }
                 }
+                
                 if (changedTables.has('products')) {
                     const allProducts = [];
                     for (const storeId in appData.products) {
@@ -600,29 +628,38 @@
                         promises.push(supabaseClient.from('products').upsert(prod));
                     }
                 }
+                
                 if (changedTables.has('testimonials')) {
                     for (const t of appData.testimonials) {
                         promises.push(supabaseClient.from('testimonials').upsert(t));
                     }
                 }
+                
                 if (changedTables.has('carousel')) {
                     for (const ad of appData.carousel) {
                         promises.push(supabaseClient.from('carousel').upsert(ad));
                     }
                 }
+                
                 if (changedTables.has('messages')) {
                     for (const msg of appData.messages) {
                         promises.push(supabaseClient.from('messages').upsert(msg));
                     }
                 }
+                
                 await Promise.all(promises);
-                localStorage.setItem('marketsDB', JSON.stringify(appData));
                 updateAutoSaveBadge();
-                if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+                
+                // إرسال إشعار للتحديث المباشر للزوار
+                if (window.broadcastChannel) {
+                    window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
+                }
+                
                 changedTables.clear();
+                
             } catch (err) {
-                console.error(err);
-                showToast("خطأ في حفظ البيانات");
+                console.error("خطأ في حفظ البيانات:", err);
+                showToast("❌ خطأ في حفظ البيانات إلى Supabase");
             } finally {
                 isSaving = false;
                 showSpinner(false);
@@ -632,10 +669,10 @@
         function showSpinner(show) {
             const badge = document.getElementById('autoSaveBadge');
             if (show) {
-                badge.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
+                badge.innerHTML = '<span class="spinner"></span> جاري الحفظ على Supabase...';
                 badge.style.background = '#f59e0b';
             } else {
-                badge.innerHTML = '✓ جميع التغييرات محفوظة';
+                badge.innerHTML = '✓ جميع التغييرات محفوظة على Supabase';
                 badge.style.background = '#fbbf24';
             }
         }
@@ -643,7 +680,7 @@
         function updateAutoSaveBadge() {
             const badge = document.getElementById('autoSaveBadge');
             if (badge) {
-                badge.innerHTML = '✓ جميع التغييرات محفوظة';
+                badge.innerHTML = '✓ جميع التغييرات محفوظة على Supabase';
                 badge.style.background = '#fbbf24';
             }
         }
@@ -673,8 +710,10 @@
         }
 
         async function seedSupabase() {
+            showToast("🔄 جاري تهيئة قاعدة البيانات للمرة الأولى...");
             const enhanced = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-            await supabaseClient.from('settings').insert({
+            
+            await supabaseClient.from('settings').upsert({
                 id: 'main',
                 data: {
                     header: enhanced.header,
@@ -684,16 +723,32 @@
                     settings: enhanced.settings
                 }
             });
-            for (const cat of enhanced.categories) await supabaseClient.from('categories').insert(cat);
+            
+            for (const cat of enhanced.categories) {
+                await supabaseClient.from('categories').upsert(cat);
+            }
+            
             for (const catName in enhanced.stores) {
-                for (const store of enhanced.stores[catName]) await supabaseClient.from('stores').insert(store);
+                for (const store of enhanced.stores[catName]) {
+                    await supabaseClient.from('stores').upsert(store);
+                }
             }
+            
             for (const storeId in enhanced.products) {
-                for (const prod of enhanced.products[storeId]) await supabaseClient.from('products').insert({ ...prod, storeId });
+                for (const prod of enhanced.products[storeId]) {
+                    await supabaseClient.from('products').upsert({ ...prod, storeId });
+                }
             }
-            for (const t of enhanced.testimonials) await supabaseClient.from('testimonials').insert(t);
-            for (const ad of enhanced.carousel) await supabaseClient.from('carousel').insert(ad);
-            showToast("✅ تم تهيئة قاعدة البيانات بنجاح");
+            
+            for (const t of enhanced.testimonials) {
+                await supabaseClient.from('testimonials').upsert(t);
+            }
+            
+            for (const ad of enhanced.carousel) {
+                await supabaseClient.from('carousel').upsert(ad);
+            }
+            
+            showToast("✅ تم تهيئة قاعدة البيانات السحابية بنجاح");
         }
 
         function showToast(msg) {
@@ -731,26 +786,32 @@
                 const select = document.getElementById(selId);
                 if (!select) return;
                 select.innerHTML = '<option>اختر الفئة</option>';
-                appData.categories.forEach(cat => {
-                    select.innerHTML += `<option value="${sanitizeText(cat.name)}">${sanitizeText(cat.name)}</option>`;
-                });
+                if (appData && appData.categories) {
+                    appData.categories.forEach(cat => {
+                        select.innerHTML += `<option value="${sanitizeText(cat.name)}">${sanitizeText(cat.name)}</option>`;
+                    });
+                }
             });
         }
 
         function populateCategoriesList() {
             const container = document.getElementById('categoriesList');
+            if (!container) return;
             container.innerHTML = '';
-            appData.categories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span>${sanitizeText(cat.name)}</span><div><button class="edit" onclick="editCategory('${cat.id}')">تعديل</button><button onclick="deleteCategory('${cat.id}')">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.categories) {
+                appData.categories.forEach(cat => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<span>${sanitizeText(cat.name)}</span><div><button class="edit" onclick="editCategory('${cat.id}')">تعديل</button><button onclick="deleteCategory('${cat.id}')">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateStoresList(category) {
             const container = document.getElementById('storesList');
-            if (!category || category === 'اختر الفئة') return;
+            if (!container) return;
+            if (!category || category === 'اختر الفئة' || !appData) return;
             container.innerHTML = '';
             const stores = appData.stores[category] || [];
             stores.forEach(store => {
@@ -763,7 +824,9 @@
 
         function populateProductsList() {
             const container = document.getElementById('productsList');
+            if (!container) return;
             container.innerHTML = '';
+            if (!appData) return;
             for (let storeId in appData.products) {
                 const store = findStoreById(storeId);
                 if (!store) continue;
@@ -779,60 +842,76 @@
 
         function populateCarouselList() {
             const container = document.getElementById('carouselList');
+            if (!container) return;
             container.innerHTML = '';
-            (appData.carousel || []).forEach(ad => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span>${sanitizeText(ad.name)}</span><div><button class="edit" onclick="editCarousel('${ad.id}')">تعديل</button><button onclick="deleteCarousel('${ad.id}')">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.carousel) {
+                (appData.carousel || []).forEach(ad => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<span>${sanitizeText(ad.name)}</span><div><button class="edit" onclick="editCarousel('${ad.id}')">تعديل</button><button onclick="deleteCarousel('${ad.id}')">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateTestimonialsList() {
             const container = document.getElementById('testimonialsList');
+            if (!container) return;
             container.innerHTML = '';
-            appData.testimonials.forEach((t, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span>${sanitizeText(t.name)}</span><div><button class="edit" onclick="editTestimonial(${idx})">تعديل</button><button onclick="deleteTestimonial(${idx})">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.testimonials) {
+                appData.testimonials.forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<span>${sanitizeText(t.name)}</span><div><button class="edit" onclick="editTestimonial('${t.id}')">تعديل</button><button onclick="deleteTestimonial('${t.id}')">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateContestsList() {
             const container = document.getElementById('contestsList');
+            if (!container) return;
             container.innerHTML = '';
-            (appData.settings.contests || []).forEach((contest, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span>${sanitizeText(contest.name)}</span><div><button class="edit" onclick="editContest(${idx})">تعديل</button><button onclick="deleteContest(${idx})">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.settings && appData.settings.contests) {
+                (appData.settings.contests || []).forEach((contest, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<span>${sanitizeText(contest.name)}</span><div><button class="edit" onclick="editContest(${idx})">تعديل</button><button onclick="deleteContest(${idx})">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateTrustBadgesList() {
             const container = document.getElementById('trustBadgesList');
+            if (!container) return;
             container.innerHTML = '';
-            (appData.settings.trustBadges || []).forEach((badge, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<span><img src="${badge}" style="height:30px;"></span><div><button onclick="deleteTrustBadge(${idx})">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.settings && appData.settings.trustBadges) {
+                (appData.settings.trustBadges || []).forEach((badge, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<span><img src="${badge}" style="height:30px;"></span><div><button onclick="deleteTrustBadge(${idx})">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateMessagesList() {
             const container = document.getElementById('messagesList');
+            if (!container) return;
             container.innerHTML = '';
-            (appData.messages || []).forEach((msg, idx) => {
-                const div = document.createElement('div');
-                div.className = 'admin-item';
-                div.innerHTML = `<div><strong>${sanitizeText(msg.name)}</strong><br>${sanitizeText(msg.email)}<br>${sanitizeText(msg.subject)}<br>${sanitizeText(msg.message)}<br><small>${msg.date}</small></div><div><button onclick="deleteMessage(${idx})">حذف</button></div>`;
-                container.appendChild(div);
-            });
+            if (appData && appData.messages) {
+                (appData.messages || []).forEach((msg, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `<div><strong>${sanitizeText(msg.name)}</strong><br>${sanitizeText(msg.email)}<br>${sanitizeText(msg.subject)}<br>${sanitizeText(msg.message)}<br><small>${msg.date}</small></div><div><button onclick="deleteMessage(${idx})">حذف</button></div>`;
+                    container.appendChild(div);
+                });
+            }
         }
 
         function populateGeneralSettings() {
+            if (!appData) return;
             document.getElementById('currencySelect').value = appData.settings.currency;
             document.getElementById('languageSelect').value = appData.settings.language;
             document.getElementById('showSaudiFlagCheckbox').checked = appData.settings.showSaudiFlag;
@@ -846,6 +925,7 @@
         }
 
         function populateDesignSettings() {
+            if (!appData) return;
             document.getElementById('categoryBg').value = appData.design.categoryBg;
             document.getElementById('categoryText').value = appData.design.categoryText;
             document.getElementById('categoryFontSize').value = appData.design.categoryFontSize;
@@ -862,16 +942,19 @@
         }
 
         function populateHeaderSettings() {
+            if (!appData) return;
             document.getElementById('headerTitleInput').value = appData.header.title;
             document.getElementById('headerSubtitleInput').value = appData.header.subtitle;
             document.getElementById('headerImagesInput').value = (appData.header.images || []).join('\n');
         }
 
         function populateTickerSettings() {
+            if (!appData) return;
             document.getElementById('tickerTextsInput').value = (appData.ticker || []).join('\n');
         }
 
         function populateFooterSettings() {
+            if (!appData) return;
             document.getElementById('footerEmail').value = appData.footer.email;
             document.getElementById('footerPhone').value = appData.footer.phone;
             document.getElementById('footerWhatsapp').value = appData.footer.whatsapp;
@@ -883,7 +966,8 @@
         function populateStorePermissions() {
             const catSelect = document.getElementById('storePermissionSelect');
             const storeSelect = document.getElementById('storePermissionStoreSelect');
-            if (!catSelect.value || catSelect.value === 'اختر الفئة') return;
+            if (!catSelect || !storeSelect) return;
+            if (!catSelect.value || catSelect.value === 'اختر الفئة' || !appData) return;
             const stores = appData.stores[catSelect.value] || [];
             storeSelect.innerHTML = '<option>اختر المتجر</option>';
             stores.forEach(store => {
@@ -892,6 +976,7 @@
         }
 
         function findStoreById(storeId) {
+            if (!appData) return null;
             for (let cat in appData.stores) {
                 const store = appData.stores[cat].find(s => s.id === storeId);
                 if (store) return store;
@@ -901,6 +986,7 @@
 
         // ================== دوال CRUD مع تتبع الجداول المتغيرة ==================
         window.editCategory = function(id) {
+            if (!appData) return;
             const cat = appData.categories.find(c => c.id === id);
             if (!cat) return;
             document.getElementById('editCategoryId').value = cat.id;
@@ -919,10 +1005,11 @@
         };
 
         window.deleteCategory = async function(id) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
+                const catToDelete = appData.categories.find(c => c.id === id);
                 appData.categories = appData.categories.filter(c => c.id !== id);
-                const catName = appData.categories.find(c => c.id === id)?.name;
-                if (catName && appData.stores[catName]) delete appData.stores[catName];
+                if (catToDelete && appData.stores[catToDelete.name]) delete appData.stores[catToDelete.name];
                 changedTables.add('categories');
                 await saveToSupabase();
                 refreshAllLists();
@@ -931,6 +1018,7 @@
         };
 
         window.editStore = function(storeId) {
+            if (!appData) return;
             const store = findStoreById(storeId);
             if (!store) return;
             currentEditStoreId = storeId;
@@ -949,6 +1037,7 @@
         };
 
         window.toggleStoreHidden = async function(storeId) {
+            if (!appData) return;
             const store = findStoreById(storeId);
             if (store) {
                 store.hidden = !store.hidden;
@@ -960,6 +1049,7 @@
         };
 
         window.deleteStore = async function(storeId) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا المتجر؟')) {
                 for (let cat in appData.stores) {
                     const index = appData.stores[cat].findIndex(s => s.id === storeId);
@@ -978,6 +1068,7 @@
         };
 
         window.editProduct = function(storeId, productId) {
+            if (!appData) return;
             currentEditProductStoreId = storeId;
             currentEditProductId = productId;
             const product = appData.products[storeId].find(p => p.id == productId);
@@ -992,6 +1083,7 @@
         };
 
         window.deleteProduct = async function(storeId, productId) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
                 const index = appData.products[storeId].findIndex(p => p.id == productId);
                 if (index !== -1) {
@@ -1005,6 +1097,7 @@
         };
 
         window.editCarousel = function(adId) {
+            if (!appData) return;
             const ad = appData.carousel.find(a => a.id === adId);
             if (!ad) return;
             currentEditCarouselId = adId;
@@ -1018,6 +1111,7 @@
         };
 
         window.deleteCarousel = async function(adId) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
                 appData.carousel = appData.carousel.filter(a => a.id !== adId);
                 changedTables.add('carousel');
@@ -1027,10 +1121,11 @@
             }
         };
 
-        window.editTestimonial = function(index) {
-            const t = appData.testimonials[index];
+        window.editTestimonial = function(id) {
+            if (!appData) return;
+            const t = appData.testimonials.find(t => t.id == id);
             if (!t) return;
-            currentEditTestimonialIndex = index;
+            currentEditTestimonialId = id;
             document.getElementById('testimonialName').value = t.name;
             document.getElementById('testimonialImage').value = t.image;
             document.getElementById('testimonialRating').value = t.rating;
@@ -1039,9 +1134,10 @@
             document.getElementById('updateTestimonialBtn').style.display = 'block';
         };
 
-        window.deleteTestimonial = async function(index) {
+        window.deleteTestimonial = async function(id) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
-                appData.testimonials.splice(index, 1);
+                appData.testimonials = appData.testimonials.filter(t => t.id != id);
                 changedTables.add('testimonials');
                 await saveToSupabase();
                 refreshAllLists();
@@ -1050,6 +1146,7 @@
         };
 
         window.editContest = function(index) {
+            if (!appData) return;
             const contest = appData.settings.contests[index];
             if (!contest) return;
             document.getElementById('editContestId').value = index;
@@ -1061,6 +1158,7 @@
         };
 
         window.deleteContest = async function(index) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذه المسابقة؟')) {
                 appData.settings.contests.splice(index, 1);
                 changedTables.add('settings');
@@ -1071,6 +1169,7 @@
         };
 
         window.deleteTrustBadge = async function(index) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذه الشارة؟')) {
                 appData.settings.trustBadges.splice(index, 1);
                 changedTables.add('settings');
@@ -1081,6 +1180,7 @@
         };
 
         window.deleteMessage = async function(index) {
+            if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
                 appData.messages.splice(index, 1);
                 changedTables.add('messages');
@@ -1301,7 +1401,9 @@
         document.getElementById('addTestimonialBtn').addEventListener('click', async () => {
             const name = document.getElementById('testimonialName').value;
             if (!name) return alert('الاسم مطلوب');
+            const newId = Date.now();
             const newTestimonial = {
+                id: newId,
                 name: name,
                 image: document.getElementById('testimonialImage').value || 'https://via.placeholder.com/100',
                 rating: parseInt(document.getElementById('testimonialRating').value) || 5,
@@ -1318,8 +1420,11 @@
         });
 
         document.getElementById('updateTestimonialBtn').addEventListener('click', async () => {
-            if (currentEditTestimonialIndex === null) return;
-            appData.testimonials[currentEditTestimonialIndex] = {
+            if (!currentEditTestimonialId) return;
+            const index = appData.testimonials.findIndex(t => t.id == currentEditTestimonialId);
+            if (index === -1) return;
+            appData.testimonials[index] = {
+                ...appData.testimonials[index],
                 name: document.getElementById('testimonialName').value,
                 image: document.getElementById('testimonialImage').value,
                 rating: parseInt(document.getElementById('testimonialRating').value),
@@ -1331,7 +1436,7 @@
             document.getElementById('testimonialForm').reset();
             document.getElementById('addTestimonialBtn').style.display = 'block';
             document.getElementById('updateTestimonialBtn').style.display = 'none';
-            currentEditTestimonialIndex = null;
+            currentEditTestimonialId = null;
             showToast('تم تحديث التقييم');
         });
 
@@ -1469,7 +1574,7 @@
         document.getElementById('publishBtn').addEventListener('click', async () => {
             await saveToSupabase();
             if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
-            showToast('✅ تم نشر التحديثات');
+            showToast('✅ تم نشر التحديثات إلى جميع الزوار');
         });
 
         document.getElementById('previewChangesBtn').addEventListener('click', async () => {
@@ -1559,7 +1664,7 @@
         document.getElementById('productCategorySelect').addEventListener('change', (e) => {
             const cat = e.target.value;
             const storeSelect = document.getElementById('productStoreSelect');
-            if (storeSelect && appData.stores[cat]) {
+            if (storeSelect && appData && appData.stores[cat]) {
                 storeSelect.innerHTML = '<option>اختر المتجر</option>';
                 appData.stores[cat].forEach(store => {
                     storeSelect.innerHTML += `<option value="${store.id}">${store.name}</option>`;
@@ -1575,11 +1680,15 @@
                 document.getElementById('adminContent').style.display = 'block';
                 document.getElementById('previewChangesBtn').style.display = 'block';
                 sessionStorage.setItem('adminLoggedIn', 'true');
-                await loadFromSupabase();
-                refreshAllLists();
-                document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
-                setInterval(() => { if (appData && changedTables.size > 0) saveToSupabase(); }, 30000);
-                window.broadcastChannel = new BroadcastChannel('markets_channel');
+                try {
+                    await loadFromSupabase();
+                    refreshAllLists();
+                    document.getElementById('visitorCount').textContent = localStorage.getItem('visitorCount') || 0;
+                    setInterval(() => { if (appData && changedTables.size > 0) saveToSupabase(); }, 30000);
+                    window.broadcastChannel = new BroadcastChannel('markets_channel');
+                } catch (err) {
+                    showToast("⚠️ فشل الاتصال بقاعدة البيانات. تحقق من الاتصال بالإنترنت.");
+                }
             } else alert('الرمز غير صحيح');
         };
 
@@ -1588,6 +1697,15 @@
         });
 
         if (sessionStorage.getItem('adminLoggedIn') === 'true') checkLogin();
+
+        // ================== تسجيل Service Worker للتخزين المؤقت ==================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('Service Worker registered in admin page:', reg);
+            }).catch(err => {
+                console.error('Service Worker registration failed:', err);
+            });
+        }
     </script>
 </body>
 </html>
