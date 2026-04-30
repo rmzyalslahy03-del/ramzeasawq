@@ -231,6 +231,8 @@
         #pullRefreshIndicator { position: fixed; top: -60px; left: 0; width: 100%; height: 60px; background: #fbbf24; color: #0f172a; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: top 0.2s ease; z-index: 10000; font-family: 'Cairo', sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         body { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         img, a, button { -webkit-tap-highlight-color: transparent; }
+        .connection-error { background: #ef4444; color: white; padding: 15px; text-align: center; margin: 10px; border-radius: 20px; }
+        .retry-connection { background: white; color: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; margin-top: 10px; cursor: pointer; font-weight: bold; }
     </style>
     <script>
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
@@ -260,12 +262,12 @@
         function sanitizeText(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
         function showToast(msg) { const toast = document.createElement('div'); toast.className = 'update-notification'; toast.textContent = msg; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
 
-        // ================== Supabase Client (تم التحديث بقاعدة البيانات الجديدة) ==================
+        // ================== Supabase Client ==================
         const SUPABASE_URL = "https://rltdptxnpotfymjqtsvp.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_SBYmfZaJmMsBzbIpDWvh7w_upcmdCNo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================== البيانات الافتراضية ==================
+        // ================== البيانات الافتراضية (تستخدم فقط عند التهيئة الأولية) ==================
         const defaultData = {
             "header": {
                 "title": "مجمع أسواق ريادة المستهلك",
@@ -349,9 +351,9 @@
                 ]
             },
             "testimonials": [
-                { "name": "مستخدم 1", "image": "https://picsum.photos/seed/user0/100/100", "rating": 5, "review": "تجربة رائعة مع هذا الموقع." },
-                { "name": "مستخدم 2", "image": "https://picsum.photos/seed/user1/100/100", "rating": 5, "review": "تجربة رائعة مع هذا الموقع." },
-                { "name": "مستخدم 3", "image": "https://picsum.photos/seed/user2/100/100", "rating": 4, "review": "تجربة رائعة مع هذا الموقع." }
+                { "id": 1, "name": "مستخدم 1", "image": "https://picsum.photos/seed/user0/100/100", "rating": 5, "review": "تجربة رائعة مع هذا الموقع." },
+                { "id": 2, "name": "مستخدم 2", "image": "https://picsum.photos/seed/user1/100/100", "rating": 5, "review": "تجربة رائعة مع هذا الموقع." },
+                { "id": 3, "name": "مستخدم 3", "image": "https://picsum.photos/seed/user2/100/100", "rating": 4, "review": "تجربة رائعة مع هذا الموقع." }
             ],
             "footer": {
                 "email": "ramzealsalhy@gmail.com",
@@ -418,19 +420,48 @@
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-        // ================== دوال Supabase الأساسية ==================
+        // ================== دوال التخزين المؤقت (Cache) ==================
+        function cacheDataLocally(key, data, ttlMinutes = 5) {
+            const cacheEntry = {
+                data: data,
+                timestamp: Date.now(),
+                expiry: ttlMinutes * 60 * 1000
+            };
+            localStorage.setItem(key, JSON.stringify(cacheEntry));
+        }
+
+        function getCachedData(key) {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+            const entry = JSON.parse(cached);
+            if (Date.now() - entry.timestamp > entry.expiry) {
+                localStorage.removeItem(key);
+                return null;
+            }
+            return entry.data;
+        }
+
+        // ================== دوال Supabase الأساسية (تعيد البيانات) ==================
         async function loadFromSupabase() {
             try {
+                // التحقق من الاتصال أولاً
+                const { data: test, error: testErr } = await supabaseClient.from('settings').select('id').limit(1);
+                if (testErr) throw new Error("انتضر الاتصال بقاعدة البيانات");
+
                 const { data: settings, error: settingsErr } = await supabaseClient
                     .from('settings')
                     .select('data')
                     .eq('id', 'main')
                     .single();
+                    
                 if (settingsErr && settingsErr.code !== 'PGRST116') throw settingsErr;
+                
+                // إذا لم توجد بيانات، قم بتهيئة قاعدة البيانات
                 if (!settings) {
                     await seedSupabase();
                     return await loadFromSupabase();
                 }
+                
                 const [categoriesRes, storesRes, productsRes, testimonialsRes, carouselRes, messagesRes] = await Promise.all([
                     supabaseClient.from('categories').select('*'),
                     supabaseClient.from('stores').select('*'),
@@ -439,20 +470,24 @@
                     supabaseClient.from('carousel').select('*'),
                     supabaseClient.from('messages').select('*')
                 ]);
+                
                 if (categoriesRes.error) throw categoriesRes.error;
                 if (storesRes.error) throw storesRes.error;
                 if (productsRes.error) throw productsRes.error;
+                
                 const storesMap = {};
                 storesRes.data.forEach(store => {
                     if (!storesMap[store.category]) storesMap[store.category] = [];
                     storesMap[store.category].push(store);
                 });
+                
                 const productsMap = {};
                 productsRes.data.forEach(prod => {
                     if (!productsMap[prod.storeId]) productsMap[prod.storeId] = [];
                     productsMap[prod.storeId].push(prod);
                 });
-                appData = {
+                
+                const freshData = {
                     header: settings.data.header,
                     ticker: settings.data.ticker,
                     design: settings.data.design,
@@ -465,15 +500,57 @@
                     carousel: carouselRes.data,
                     messages: messagesRes.data
                 };
+                
                 await syncLocalUsers();
-                return true;
+                return freshData;
+                
             } catch (err) {
-                console.error(err);
-                showToast("خطأ في تحميل البيانات من Supabase، سيتم استخدام النسخة المحلية");
-                const stored = localStorage.getItem('marketsDB');
-                if (stored) appData = JSON.parse(stored);
-                else appData = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-                return false;
+                console.error("خطأ في الاتصال بـ Supabase:", err);
+                showToast("⚠️ لا يمكن الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
+                throw err;
+            }
+        }
+
+        async function loadFromSupabaseWithCache() {
+            // 1. عرض البيانات المخزنة أولاً (إن وجدت)
+            const cachedData = getCachedData('appDataCache');
+            if (cachedData && !appData) {
+                appData = cachedData;
+                applyDesignSettings();
+                renderHomePage();
+                updateCartDisplay();
+                console.log('تم تحميل البيانات من الكاش المحلي (سريع)');
+            } else if (cachedData && appData) {
+                // إذا كان هناك بيانات حالية ولكن نريد تحديثها بالكاش فقط في حالة عدم وجود إنترنت
+                // لا نفعل شيئاً
+            }
+            
+            // 2. محاولة جلب البيانات الجديدة من Supabase في الخلفية
+            try {
+                const freshData = await loadFromSupabase();
+                if (freshData) {
+                    // تحديث الواجهة إذا تغيرت البيانات
+                    if (!appData || JSON.stringify(appData) !== JSON.stringify(freshData)) {
+                        appData = freshData;
+                        applyDesignSettings();
+                        renderHomePage();
+                        updateCartDisplay();
+                        console.log('تم تحديث البيانات من Supabase');
+                    }
+                    cacheDataLocally('appDataCache', freshData, 5); // تخزين لمدة 5 دقائق
+                }
+            } catch (err) {
+                console.warn('انتضر تحديث البيانات من Supabase، استمرار بالبيانات المخزنة', err);
+                // إذا لم يكن هناك بيانات مخزنة وحدث خطأ، نعرض رسالة للمستخدم
+                if (!appData) {
+                    document.getElementById('homePage').innerHTML = `<div class="connection-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>انتضر الاتصال بقاعدة البيانات</h3>
+                        <p>تأكد من اتصالك بالإنترنت وأعد تحميل الصفحة</p>
+                        <button class="retry-connection" onclick="location.reload()">محاولة مرة أخرى</button>
+                    </div>`;
+                    showToast("⚠️ لا يمكن تحميل البيانات. تأكد من اتصالك بالإنترنت.");
+                }
             }
         }
 
@@ -502,11 +579,11 @@
                 for (const t of appData.testimonials) await supabaseClient.from('testimonials').upsert(t);
                 for (const ad of appData.carousel) await supabaseClient.from('carousel').upsert(ad);
                 for (const msg of appData.messages) await supabaseClient.from('messages').upsert(msg);
-                localStorage.setItem('marketsDB', JSON.stringify(appData));
+                
                 if (window.broadcastChannel) window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
             } catch (err) {
-                console.error(err);
-                showToast("خطأ في حفظ البيانات");
+                console.error("خطأ في حفظ البيانات:", err);
+                showToast("❌ خطأ في حفظ البيانات");
             }
         }
 
@@ -543,8 +620,10 @@
         }
 
         async function seedSupabase() {
+            showToast("🔄 جاري تهيئة قاعدة البيانات للمرة الأولى...");
             const enhanced = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-            await supabaseClient.from('settings').insert({
+            
+            await supabaseClient.from('settings').upsert({
                 id: 'main',
                 data: {
                     header: enhanced.header,
@@ -554,24 +633,30 @@
                     settings: enhanced.settings
                 }
             });
-            for (const cat of enhanced.categories) await supabaseClient.from('categories').insert(cat);
+            
+            for (const cat of enhanced.categories) await supabaseClient.from('categories').upsert(cat);
             for (const catName in enhanced.stores) {
-                for (const store of enhanced.stores[catName]) await supabaseClient.from('stores').insert(store);
+                for (const store of enhanced.stores[catName]) await supabaseClient.from('stores').upsert(store);
             }
             for (const storeId in enhanced.products) {
-                for (const prod of enhanced.products[storeId]) await supabaseClient.from('products').insert({ ...prod, storeId });
+                for (const prod of enhanced.products[storeId]) await supabaseClient.from('products').upsert({ ...prod, storeId });
             }
-            for (const t of enhanced.testimonials) await supabaseClient.from('testimonials').insert(t);
-            for (const ad of enhanced.carousel) await supabaseClient.from('carousel').insert(ad);
-            showToast("✅ تم تهيئة قاعدة البيانات بنجاح");
+            for (const t of enhanced.testimonials) await supabaseClient.from('testimonials').upsert(t);
+            for (const ad of enhanced.carousel) await supabaseClient.from('carousel').upsert(ad);
+            
+            showToast("✅ تم تهيئة قاعدة البيانات السحابية بنجاح");
         }
 
         let dbReady = false;
         let dbCallbacks = [];
         async function initDB() {
-            await loadFromSupabase();
-            dbReady = true;
-            dbCallbacks.forEach(cb => cb());
+            try {
+                await loadFromSupabaseWithCache();
+                dbReady = true;
+                dbCallbacks.forEach(cb => cb());
+            } catch (err) {
+                showToast("⚠️ انتضر الاتصال بقاعدة البيانات. الرجاء تحديث الصفحة.");
+            }
         }
         function onDBReady(cb) { if (dbReady) cb(); else dbCallbacks.push(cb); }
 
@@ -1199,11 +1284,8 @@
         window.broadcastChannel = new BroadcastChannel('markets_channel');
         window.broadcastChannel.onmessage = (event) => {
             if (event.data.type === 'DB_UPDATE') {
-                loadFromSupabase().then(() => {
-                    applyDesignSettings();
-                    renderHomePage();
-                    showToast('تم تحديث الموقع');
-                });
+                loadFromSupabaseWithCache();
+                showToast('تم تحديث الموقع');
             }
         };
 
@@ -1217,37 +1299,49 @@
         if ('ontouchstart' in window) { document.body.addEventListener('touchstart', onTouchStart, { passive: false }); document.body.addEventListener('touchmove', onTouchMove, { passive: false }); document.body.addEventListener('touchend', onTouchEnd); }
 
         window.refreshData = async function() {
-            await loadFromSupabase();
-            applyDesignSettings();
-            renderHomePage();
-            showToast('تم تحديث البيانات');
+            try {
+                await loadFromSupabaseWithCache();
+                showToast('تم تحديث البيانات');
+            } catch (err) {
+                showToast('⚠️ انتضر تحديث البيانات. تحقق من الاتصال.');
+            }
         };
 
-        // ================== بدء التشغيل ==================
+        // ================== بدء التشغيل مع Service Worker ==================
         let visitorCount = localStorage.getItem('visitorCount') ? parseInt(localStorage.getItem('visitorCount')) : 0;
         if (!sessionStorage.getItem('visited')) { visitorCount++; localStorage.setItem('visitorCount', visitorCount); sessionStorage.setItem('visited', 'true'); }
         document.getElementById('visitorCount').textContent = visitorCount;
 
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                console.log('Service Worker registered:', reg);
+            }).catch(err => {
+                console.error('Service Worker registration failed:', err);
+            });
+        }
+
         (async function initializeApp() {
             try {
-                await loadFromSupabase();
-                applyDesignSettings();
+                await loadFromSupabaseWithCache();
                 startHeaderInterval();
-                renderHomePage();
-                updateCartDisplay();
+                // تحديث دوري كل 5 دقائق في الخلفية
+                setInterval(() => {
+                    loadFromSupabaseWithCache();
+                }, 5 * 60 * 1000);
                 if (window.location.hash) window.dispatchEvent(new Event('hashchange'));
-                showToast("تم تحميل الموقع بنجاح");
+                showToast("✅ تم تحميل الموقع بنجاح (مع تخزين مؤقت)");
             } catch (err) {
-                console.error("فشل التهيئة:", err);
-                showToast("حدث خطأ في تحميل البيانات، يتم استخدام النسخة المحلية");
-                const stored = localStorage.getItem('marketsDB');
-                if (stored) appData = JSON.parse(stored);
-                else appData = enhanceData(JSON.parse(JSON.stringify(defaultData)));
-                applyDesignSettings();
-                startHeaderInterval();
-                renderHomePage();
-                updateCartDisplay();
-                if (window.location.hash) window.dispatchEvent(new Event('hashchange'));
+                console.error("انتضر التهيئة:", err);
+                if (!appData) {
+                    document.getElementById('homePage').innerHTML = `<div class="connection-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>انتضر الاتصال بقاعدة البيانات</h3>
+                        <p>تأكد من اتصالك بالإنترنت وأعد تحميل الصفحة</p>
+                        <button class="retry-connection" onclick="location.reload()">محاولة مرة أخرى</button>
+                    </div>`;
+                }
+                showToast("⚠️ لا يمكن تحميل البيانات. تأكد من اتصالك بالإنترنت.");
             }
         })();
     </script>
