@@ -44,11 +44,12 @@
         .import-export button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .import-export button:hover { filter: brightness(1.1); transform: scale(1.02); }
         #importFile { display: none; }
-        .spinner { display: none; width: 20px; height: 20px; border: 2px solid #fff; border-top: 2px solid #fbbf24; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 10px; vertical-align: middle; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #fff; border-top: 2px solid #fbbf24; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 10px; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
         .error-banner { background: #ef4444; color: white; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 20px; }
         .retry-btn { background: white; color: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .force-save-btn { background: #f59e0b; color: #0f172a; border: none; padding: 8px 15px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -67,6 +68,11 @@
 
         <div id="connectionStatus" style="background: #10b981; padding: 10px; border-radius: 20px; text-align: center; margin-bottom: 20px;">
             ✅ متصل بقاعدة البيانات السحابية (Supabase)
+        </div>
+
+        <!-- زر حفظ فوري -->
+        <div style="text-align: left; margin-bottom: 15px;">
+            <button id="forceSaveBtn" class="force-save-btn"><i class="fas fa-save"></i> حفظ فوري لجميع البيانات</button>
         </div>
 
         <div class="admin-grid">
@@ -221,14 +227,14 @@
                 <div class="admin-form" id="categoryForm">
                     <input type="hidden" id="editCategoryId">
                     <input type="text" id="categoryName" placeholder="الاسم" required>
-                    <input type="text" id="categoryIcon" placeholder="أيقونة" required>
-                    <input type="text" id="categorySlug" placeholder="slug" required>
+                    <input type="text" id="categoryIcon" placeholder="أيقونة (مثل fas fa-tag)" required>
+                    <input type="text" id="categorySlug" placeholder="slug (رابط مختصر)" required>
                     <input type="color" id="categoryColor" value="#9b4d96">
-                    <label>الصورة المميزة</label><input type="text" id="categoryFeaturedImage">
+                    <label>الصورة المميزة</label><input type="text" id="categoryFeaturedImage" placeholder="رابط الصورة">
                     <input type="file" id="categoryFeaturedImageFile" accept="image/*">
-                    <label>صورة الفهرس</label><input type="text" id="categoryIndexImage">
+                    <label>صورة الفهرس (تظهر في الصفحة الرئيسية)</label><input type="text" id="categoryIndexImage" placeholder="رابط صورة الفهرس">
                     <input type="file" id="categoryIndexImageFile" accept="image/*">
-                    <label><input type="checkbox" id="categoryShowInIndex" checked> عرض في الفهرس</label>
+                    <label><input type="checkbox" id="categoryShowInIndex" checked> عرض في الفهرس (الصفحة الرئيسية)</label>
                     <label>ترتيب الفهرس</label><input type="number" id="categoryIndexOrder" value="0">
                     <label>نص الإعلان للفئة</label><textarea id="categoryAdText"></textarea>
                     <label><input type="checkbox" id="categoryAdEnabled"> تفعيل الإعلان</label>
@@ -350,7 +356,7 @@
         const SUPABASE_ANON_KEY = "sb_publishable_SBYmfZaJmMsBzbIpDWvh7w_upcmdCNo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ================== البيانات الافتراضية (تستخدم فقط عند التهيئة الأولية) ==================
+        // ================== البيانات الافتراضية ==================
         const defaultData = {
             header: {
                 title: "مجمع أسواق ريادة المستهلك",
@@ -390,7 +396,7 @@
             categories: [
                 { id: "cat1", name: "العطور والبخور", icon: "fas fa-spray-can-sparkles", slug: "perfumes", color: "#9b4d96", featuredImage: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 1, adText: "", adEnabled: false },
                 { id: "cat2", name: "الورد والهدايا", icon: "fas fa-gift", slug: "gifts", color: "#d97706", featuredImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 2, adText: "", adEnabled: false },
-                { id: "cat3", name: "الإكسسوارات", icon: "fas fa-ring", slug: "accessories", color: "#4f6f8f", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false },
+                { id: "cat3", name: "الإكسسوارات", icon: "fas fa-ring", slug: "accessories", color: "#4f6f8f", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 3, adText: "", adEnabled: false },
                 { id: "cat4", name: "الأزياء", icon: "fas fa-tshirt", slug: "fashion", color: "#2563eb", featuredImage: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 4, adText: "", adEnabled: false },
                 { id: "cat5", name: "الإلكترونيات", icon: "fas fa-laptop", slug: "electronics", color: "#0e7c7c", featuredImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&h=300&fit=crop", indexImage: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=400&fit=crop", showInIndex: true, indexOrder: 5, adText: "", adEnabled: false }
             ],
@@ -508,13 +514,9 @@
         let changedTables = new Set();
         let isSaving = false;
 
-        // ================== دوال Supabase (بدون localStorage) ==================
+        // ================== دوال Supabase ==================
         async function loadFromSupabase() {
             try {
-                // التحقق من الاتصال أولاً
-                const { data: test, error: testErr } = await supabaseClient.from('settings').select('id').limit(1);
-                if (testErr) throw new Error("فشل الاتصال بقاعدة البيانات");
-
                 const { data: settings, error: settingsErr } = await supabaseClient
                     .from('settings')
                     .select('data')
@@ -523,7 +525,6 @@
                     
                 if (settingsErr && settingsErr.code !== 'PGRST116') throw settingsErr;
                 
-                // إذا لم توجد بيانات، قم بتهيئة قاعدة البيانات
                 if (!settings) {
                     await seedSupabase();
                     return await loadFromSupabase();
@@ -584,7 +585,10 @@
 
         async function saveToSupabase() {
             if (!appData || isSaving) return;
-            if (changedTables.size === 0) return;
+            if (changedTables.size === 0) {
+                // showToast("لا توجد تغييرات للحفظ");
+                return;
+            }
             
             isSaving = true;
             showSpinner(true);
@@ -647,19 +651,25 @@
                     }
                 }
                 
-                await Promise.all(promises);
-                updateAutoSaveBadge();
+                const results = await Promise.all(promises);
+                // التحقق من وجود أخطاء في النتائج
+                for (const res of results) {
+                    if (res.error) {
+                        console.error("خطأ في الحفظ:", res.error);
+                        throw new Error(res.error.message);
+                    }
+                }
                 
-                // إرسال إشعار للتحديث المباشر للزوار
+                updateAutoSaveBadge();
                 if (window.broadcastChannel) {
                     window.broadcastChannel.postMessage({ type: 'DB_UPDATE', timestamp: Date.now() });
                 }
-                
                 changedTables.clear();
+                showToast("✅ تم حفظ جميع التغييرات في قاعدة البيانات");
                 
             } catch (err) {
                 console.error("خطأ في حفظ البيانات:", err);
-                showToast("❌ خطأ في حفظ البيانات إلى Supabase");
+                showToast("❌ خطأ في حفظ البيانات: " + err.message);
             } finally {
                 isSaving = false;
                 showSpinner(false);
@@ -984,7 +994,7 @@
             return null;
         }
 
-        // ================== دوال CRUD مع تتبع الجداول المتغيرة ==================
+        // ================== دوال CRUD مع التخزين الدائم ==================
         window.editCategory = function(id) {
             if (!appData) return;
             const cat = appData.categories.find(c => c.id === id);
@@ -1006,14 +1016,23 @@
 
         window.deleteCategory = async function(id) {
             if (!appData) return;
-            if (confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
+            if (confirm('هل أنت متأكد من حذف هذه الفئة؟ سيتم حذف جميع المتاجر والمنتجات المرتبطة بها تلقائياً (CASCADE).')) {
+                // حذف من قاعدة البيانات مباشرة لضمان Cascade
+                const { error } = await supabaseClient.from('categories').delete().eq('id', id);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
+                // تحديث appData محلياً
                 const catToDelete = appData.categories.find(c => c.id === id);
                 appData.categories = appData.categories.filter(c => c.id !== id);
                 if (catToDelete && appData.stores[catToDelete.name]) delete appData.stores[catToDelete.name];
                 changedTables.add('categories');
+                changedTables.add('stores');
+                changedTables.add('products');
                 await saveToSupabase();
                 refreshAllLists();
-                showToast('تم حذف الفئة بنجاح');
+                showToast('تم حذف الفئة وجميع محتوياتها بنجاح');
             }
         };
 
@@ -1050,20 +1069,27 @@
 
         window.deleteStore = async function(storeId) {
             if (!appData) return;
-            if (confirm('هل أنت متأكد من حذف هذا المتجر؟')) {
+            if (confirm('هل أنت متأكد من حذف هذا المتجر؟ سيتم حذف جميع منتجاته تلقائياً.')) {
+                // حذف من قاعدة البيانات مباشرة
+                const { error } = await supabaseClient.from('stores').delete().eq('id', storeId);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
+                // تحديث محلي
                 for (let cat in appData.stores) {
                     const index = appData.stores[cat].findIndex(s => s.id === storeId);
                     if (index !== -1) {
                         appData.stores[cat].splice(index, 1);
                         delete appData.products[storeId];
-                        changedTables.add('stores');
-                        changedTables.add('products');
-                        await saveToSupabase();
-                        refreshAllLists();
-                        showToast('تم حذف المتجر');
                         break;
                     }
                 }
+                changedTables.add('stores');
+                changedTables.add('products');
+                await saveToSupabase();
+                refreshAllLists();
+                showToast('تم حذف المتجر وجميع منتجاته');
             }
         };
 
@@ -1085,6 +1111,13 @@
         window.deleteProduct = async function(storeId, productId) {
             if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                // حذف من قاعدة البيانات مباشرة
+                const { error } = await supabaseClient.from('products').delete().eq('storeId', storeId).eq('id', productId);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
+                // تحديث محلي
                 const index = appData.products[storeId].findIndex(p => p.id == productId);
                 if (index !== -1) {
                     appData.products[storeId].splice(index, 1);
@@ -1113,6 +1146,11 @@
         window.deleteCarousel = async function(adId) {
             if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
+                const { error } = await supabaseClient.from('carousel').delete().eq('id', adId);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
                 appData.carousel = appData.carousel.filter(a => a.id !== adId);
                 changedTables.add('carousel');
                 await saveToSupabase();
@@ -1137,6 +1175,11 @@
         window.deleteTestimonial = async function(id) {
             if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
+                const { error } = await supabaseClient.from('testimonials').delete().eq('id', id);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
                 appData.testimonials = appData.testimonials.filter(t => t.id != id);
                 changedTables.add('testimonials');
                 await saveToSupabase();
@@ -1182,6 +1225,12 @@
         window.deleteMessage = async function(index) {
             if (!appData) return;
             if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                const msg = appData.messages[index];
+                const { error } = await supabaseClient.from('messages').delete().eq('id', msg.id);
+                if (error) {
+                    showToast("خطأ في الحذف: " + error.message);
+                    return;
+                }
                 appData.messages.splice(index, 1);
                 changedTables.add('messages');
                 await saveToSupabase();
@@ -1194,11 +1243,17 @@
         document.getElementById('addCategoryBtn').addEventListener('click', async () => {
             const name = document.getElementById('categoryName').value;
             if (!name) return alert('اسم الفئة مطلوب');
+            const slug = document.getElementById('categorySlug').value || name.replace(/\s/g, '-').toLowerCase();
+            // التحقق من عدم تكرار الـ slug
+            if (appData.categories.some(c => c.slug === slug)) {
+                alert('هذا الـ slug موجود مسبقاً، الرجاء اختيار slug آخر');
+                return;
+            }
             const newCat = {
                 id: 'cat' + Date.now(),
                 name: name,
                 icon: document.getElementById('categoryIcon').value || 'fas fa-tag',
-                slug: document.getElementById('categorySlug').value || name.replace(/\s/g, '-').toLowerCase(),
+                slug: slug,
                 color: document.getElementById('categoryColor').value,
                 featuredImage: document.getElementById('categoryFeaturedImage').value || 'https://via.placeholder.com/400x300',
                 indexImage: document.getElementById('categoryIndexImage').value || 'https://via.placeholder.com/600x400',
@@ -1207,6 +1262,12 @@
                 adText: document.getElementById('categoryAdText').value,
                 adEnabled: document.getElementById('categoryAdEnabled').checked
             };
+            // إدراج مباشر في Supabase
+            const { error } = await supabaseClient.from('categories').insert(newCat);
+            if (error) {
+                showToast("خطأ في الإضافة: " + error.message);
+                return;
+            }
             appData.categories.push(newCat);
             if (!appData.stores[newCat.name]) appData.stores[newCat.name] = [];
             changedTables.add('categories');
@@ -1215,7 +1276,7 @@
             document.getElementById('categoryForm').reset();
             document.getElementById('addCategoryBtn').style.display = 'block';
             document.getElementById('updateCategoryBtn').style.display = 'none';
-            showToast('تم إضافة الفئة');
+            showToast('تم إضافة الفئة وحفظها في قاعدة البيانات');
         });
 
         document.getElementById('updateCategoryBtn').addEventListener('click', async () => {
@@ -1224,7 +1285,7 @@
             if (catIndex === -1) return;
             const oldName = appData.categories[catIndex].name;
             const newName = document.getElementById('categoryName').value;
-            appData.categories[catIndex] = {
+            const updatedCat = {
                 ...appData.categories[catIndex],
                 name: newName,
                 icon: document.getElementById('categoryIcon').value,
@@ -1237,6 +1298,13 @@
                 adText: document.getElementById('categoryAdText').value,
                 adEnabled: document.getElementById('categoryAdEnabled').checked
             };
+            // تحديث في Supabase
+            const { error } = await supabaseClient.from('categories').update(updatedCat).eq('id', id);
+            if (error) {
+                showToast("خطأ في التحديث: " + error.message);
+                return;
+            }
+            appData.categories[catIndex] = updatedCat;
             if (oldName !== newName && appData.stores[oldName]) {
                 appData.stores[newName] = appData.stores[oldName];
                 delete appData.stores[oldName];
@@ -1272,6 +1340,12 @@
                 productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value),
                 numStrips: parseInt(document.getElementById('storeNumStrips').value)
             };
+            // إدراج مباشر في Supabase
+            const { error } = await supabaseClient.from('stores').insert(newStore);
+            if (error) {
+                showToast("خطأ في إضافة المتجر: " + error.message);
+                return;
+            }
             if (!appData.stores[category]) appData.stores[category] = [];
             appData.stores[category].push(newStore);
             appData.products[newId] = [];
@@ -1282,23 +1356,32 @@
             document.getElementById('storeForm').reset();
             document.getElementById('addStoreBtn').style.display = 'block';
             document.getElementById('updateStoreBtn').style.display = 'none';
-            showToast('تم إضافة المتجر');
+            showToast('تم إضافة المتجر وحفظه في قاعدة البيانات');
         });
 
         document.getElementById('updateStoreBtn').addEventListener('click', async () => {
             if (!currentEditStoreId) return;
             const store = findStoreById(currentEditStoreId);
             if (!store) return;
-            store.name = document.getElementById('storeName').value;
-            store.logo = document.getElementById('storeLogo').value;
-            store.externalUrl = document.getElementById('storeExternalUrl').value;
-            store.description = document.getElementById('storeDescription').value;
-            store.phone = document.getElementById('storePhone').value;
-            store.address = document.getElementById('storeAddress').value;
-            store.hidden = document.getElementById('storeHidden').checked;
-            store.productDisplayMode = document.getElementById('storeProductDisplayMode').value;
-            store.productDisplayCount = parseInt(document.getElementById('storeProductDisplayCount').value);
-            store.numStrips = parseInt(document.getElementById('storeNumStrips').value);
+            const updatedStore = {
+                ...store,
+                name: document.getElementById('storeName').value,
+                logo: document.getElementById('storeLogo').value,
+                externalUrl: document.getElementById('storeExternalUrl').value,
+                description: document.getElementById('storeDescription').value,
+                phone: document.getElementById('storePhone').value,
+                address: document.getElementById('storeAddress').value,
+                hidden: document.getElementById('storeHidden').checked,
+                productDisplayMode: document.getElementById('storeProductDisplayMode').value,
+                productDisplayCount: parseInt(document.getElementById('storeProductDisplayCount').value),
+                numStrips: parseInt(document.getElementById('storeNumStrips').value)
+            };
+            const { error } = await supabaseClient.from('stores').update(updatedStore).eq('id', currentEditStoreId);
+            if (error) {
+                showToast("خطأ في التحديث: " + error.message);
+                return;
+            }
+            Object.assign(store, updatedStore);
             changedTables.add('stores');
             await saveToSupabase();
             refreshAllLists();
@@ -1317,12 +1400,18 @@
             const newId = Date.now();
             const newProduct = {
                 id: newId,
+                storeId: storeId,
                 name: name,
                 oldPrice: parseFloat(document.getElementById('productOldPrice').value),
                 newPrice: parseFloat(document.getElementById('productNewPrice').value),
                 image: document.getElementById('productImage').value || 'https://via.placeholder.com/300',
                 link: document.getElementById('productLink').value || '#'
             };
+            const { error } = await supabaseClient.from('products').insert(newProduct);
+            if (error) {
+                showToast("خطأ في إضافة المنتج: " + error.message);
+                return;
+            }
             if (!appData.products[storeId]) appData.products[storeId] = [];
             appData.products[storeId].push(newProduct);
             changedTables.add('products');
@@ -1331,18 +1420,27 @@
             document.getElementById('productForm').reset();
             document.getElementById('addProductBtn').style.display = 'block';
             document.getElementById('updateProductBtn').style.display = 'none';
-            showToast('تم إضافة المنتج');
+            showToast('تم إضافة المنتج وحفظه في قاعدة البيانات');
         });
 
         document.getElementById('updateProductBtn').addEventListener('click', async () => {
             if (!currentEditProductStoreId || !currentEditProductId) return;
             const product = appData.products[currentEditProductStoreId].find(p => p.id == currentEditProductId);
             if (!product) return;
-            product.name = document.getElementById('productName').value;
-            product.oldPrice = parseFloat(document.getElementById('productOldPrice').value);
-            product.newPrice = parseFloat(document.getElementById('productNewPrice').value);
-            product.image = document.getElementById('productImage').value;
-            product.link = document.getElementById('productLink').value;
+            const updatedProduct = {
+                ...product,
+                name: document.getElementById('productName').value,
+                oldPrice: parseFloat(document.getElementById('productOldPrice').value),
+                newPrice: parseFloat(document.getElementById('productNewPrice').value),
+                image: document.getElementById('productImage').value,
+                link: document.getElementById('productLink').value
+            };
+            const { error } = await supabaseClient.from('products').update(updatedProduct).eq('storeId', currentEditProductStoreId).eq('id', currentEditProductId);
+            if (error) {
+                showToast("خطأ في التحديث: " + error.message);
+                return;
+            }
+            Object.assign(product, updatedProduct);
             changedTables.add('products');
             await saveToSupabase();
             refreshAllLists();
@@ -1365,6 +1463,11 @@
                 order: parseInt(document.getElementById('carouselOrder').value) || 0,
                 active: document.getElementById('carouselActive').checked
             };
+            const { error } = await supabaseClient.from('carousel').insert(newAd);
+            if (error) {
+                showToast("خطأ في الإضافة: " + error.message);
+                return;
+            }
             if (!appData.carousel) appData.carousel = [];
             appData.carousel.push(newAd);
             changedTables.add('carousel');
@@ -1380,7 +1483,7 @@
             if (!currentEditCarouselId) return;
             const index = appData.carousel.findIndex(a => a.id === currentEditCarouselId);
             if (index === -1) return;
-            appData.carousel[index] = {
+            const updatedAd = {
                 ...appData.carousel[index],
                 name: document.getElementById('carouselName').value,
                 link: document.getElementById('carouselLink').value,
@@ -1388,6 +1491,12 @@
                 order: parseInt(document.getElementById('carouselOrder').value),
                 active: document.getElementById('carouselActive').checked
             };
+            const { error } = await supabaseClient.from('carousel').update(updatedAd).eq('id', currentEditCarouselId);
+            if (error) {
+                showToast("خطأ في التحديث: " + error.message);
+                return;
+            }
+            appData.carousel[index] = updatedAd;
             changedTables.add('carousel');
             await saveToSupabase();
             refreshAllLists();
@@ -1409,6 +1518,11 @@
                 rating: parseInt(document.getElementById('testimonialRating').value) || 5,
                 review: document.getElementById('testimonialReview').value
             };
+            const { error } = await supabaseClient.from('testimonials').insert(newTestimonial);
+            if (error) {
+                showToast("خطأ في الإضافة: " + error.message);
+                return;
+            }
             appData.testimonials.push(newTestimonial);
             changedTables.add('testimonials');
             await saveToSupabase();
@@ -1423,13 +1537,19 @@
             if (!currentEditTestimonialId) return;
             const index = appData.testimonials.findIndex(t => t.id == currentEditTestimonialId);
             if (index === -1) return;
-            appData.testimonials[index] = {
+            const updatedTestimonial = {
                 ...appData.testimonials[index],
                 name: document.getElementById('testimonialName').value,
                 image: document.getElementById('testimonialImage').value,
                 rating: parseInt(document.getElementById('testimonialRating').value),
                 review: document.getElementById('testimonialReview').value
             };
+            const { error } = await supabaseClient.from('testimonials').update(updatedTestimonial).eq('id', currentEditTestimonialId);
+            if (error) {
+                showToast("خطأ في التحديث: " + error.message);
+                return;
+            }
+            appData.testimonials[index] = updatedTestimonial;
             changedTables.add('testimonials');
             await saveToSupabase();
             refreshAllLists();
@@ -1605,7 +1725,7 @@
             document.getElementById('importFile').click();
         });
 
-        document.getElementById('importFile').addEventListener('change', (e) => {
+        document.getElementById('importFile').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1614,6 +1734,13 @@
                     const importedData = JSON.parse(ev.target.result);
                     if (!importedData.categories || !importedData.stores || !importedData.products) throw new Error('ملف غير صالح');
                     appData = enhanceData(importedData);
+                    // حذف البيانات القديمة وإعادة إدراج الجديدة
+                    await supabaseClient.from('categories').delete().neq('id', '');
+                    await supabaseClient.from('stores').delete().neq('id', '');
+                    await supabaseClient.from('products').delete().neq('storeId', '');
+                    await supabaseClient.from('testimonials').delete().neq('id', 0);
+                    await supabaseClient.from('carousel').delete().neq('id', '');
+                    await supabaseClient.from('messages').delete().neq('id', 0);
                     changedTables.add('settings');
                     changedTables.add('categories');
                     changedTables.add('stores');
@@ -1630,6 +1757,19 @@
                 }
             };
             reader.readAsText(file);
+        });
+
+        // زر الحفظ الفوري
+        document.getElementById('forceSaveBtn').addEventListener('click', async () => {
+            changedTables.add('categories');
+            changedTables.add('stores');
+            changedTables.add('products');
+            changedTables.add('testimonials');
+            changedTables.add('carousel');
+            changedTables.add('messages');
+            changedTables.add('settings');
+            await saveToSupabase();
+            showToast('✅ تم حفظ جميع البيانات في قاعدة البيانات');
         });
 
         function handleImageUpload(fileInput, targetInputId) {
@@ -1697,15 +1837,6 @@
         });
 
         if (sessionStorage.getItem('adminLoggedIn') === 'true') checkLogin();
-
-        // ================== تسجيل Service Worker للتخزين المؤقت ==================
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(reg => {
-                console.log('Service Worker registered in admin page:', reg);
-            }).catch(err => {
-                console.error('Service Worker registration failed:', err);
-            });
-        }
     </script>
 </body>
 </html>
